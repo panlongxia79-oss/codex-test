@@ -3410,6 +3410,24 @@
       gap: 16px;
     }
 
+    .okr-mobile-owner-switch {
+      display: none;
+      gap: 8px;
+      border: 1px solid rgba(201, 168, 87, 0.16);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.78);
+      padding: 14px 16px;
+      box-shadow: 0 12px 28px rgba(43, 38, 32, 0.08);
+    }
+
+    .okr-mobile-owner-switch label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-2);
+    }
+
     .okr-header-card {
       border: 1px solid rgba(201, 168, 87, 0.18);
       border-radius: 18px;
@@ -3853,7 +3871,11 @@
 
     @media (max-width: 720px) {
       .okr-side {
-        padding: 12px;
+        display: none;
+      }
+
+      .okr-mobile-owner-switch {
+        display: grid;
       }
 
       .okr-tree-node {
@@ -5354,7 +5376,7 @@
         <button class="navitem" data-page="dash" type="button"><span>◧</span>營運儀表板</button>
         <button class="navitem" data-page="director" type="button"><span>▣</span>門店總覽</button>
         <button class="navitem" data-page="action" type="button"><span>↗</span>改善追蹤</button>
-        <button class="navitem" data-page="entry" type="button"><span>✎</span>數據回報 <span class="badge" id="dueBadge" style="display:none">0</span></button>
+        <button class="navitem" data-page="entry" type="button"><span>✎</span>數據回報</button>
         <button class="navitem" data-page="google" type="button"><span>✦</span>Google商家</button>
         <button class="navitem" data-page="setup" type="button"><span>⚙</span>指標設定</button>
         <button class="navitem" data-page="supabase" type="button"><span>☁</span>Supabase</button>
@@ -5384,7 +5406,6 @@
           <div>
             <div class="k mono">strategy · okr</div>
             <h2>組織 OKR</h2>
-            <p>目標說明方向，KR 掛到品牌指標上。這樣月底不是寫心得，而是讓數字自己推進進度。</p>
           </div>
           <div class="page-tools">
             <button class="btn sm" type="button" onclick="addObjective()">＋ 新增目標</button>
@@ -13167,6 +13188,22 @@ with check (true);`;
       </div>${children.map((child) => renderOKRTreeNode(child, selectedOwnerId, depth + 1)).join("")}`;
     }
 
+    function renderOKRMobileOwnerOptions(selectedOwnerId = "") {
+      const rows = [];
+      const walk = (owner, depth = 0) => {
+        rows.push({ owner, depth });
+        orgChildren(owner.id).forEach((child) => walk(child, depth + 1));
+      };
+      state.owners
+        .filter((owner) => !owner.parentId)
+        .forEach((owner) => walk(owner));
+      return rows.map(({ owner, depth }) => {
+        const prefix = depth ? `${"  ".repeat(depth)}- ` : "";
+        const caption = ownerCaption(owner);
+        return `<option value="${owner.id}" ${owner.id === selectedOwnerId ? "selected" : ""}>${escapeHTML(`${prefix}${owner.name}${owner.role ? `｜${owner.role}` : ""}${caption ? ` · ${caption}` : ""}`)}</option>`;
+      }).join("");
+    }
+
     function renderOwnerSummaryCard(owner, options = {}) {
       const style = ownerStyle(owner.id);
       const stats = ownerDirectStats(owner.id);
@@ -13210,13 +13247,18 @@ with check (true);`;
           <aside class="okr-side">
             <div class="okr-side-head">
               <div class="k mono">okr relation</div>
-              <strong>左側堆疊導覽</strong>
-              <span>堆疊只留左邊。右邊永遠只看被點到的那一個人。</span>
             </div>
             <div class="okr-tree">${roots.map((owner) => renderOKRTreeNode(owner, selected.id)).join("")}</div>
           </aside>
 
           <div class="okr-main">
+            <section class="okr-mobile-owner-switch">
+              <label for="okrMobileOwnerSelect">切換負責人</label>
+              <select id="okrMobileOwnerSelect" onchange="selectOKROwner(this.value)">
+                ${renderOKRMobileOwnerOptions(selected.id)}
+              </select>
+            </section>
+
             <section class="okr-header-card">
               <div class="okr-header-top">
                 <div class="okr-owner-id">
@@ -13243,17 +13285,12 @@ with check (true);`;
                   </div>
                 </div>
               </div>
-              <div class="okr-section-cap">
-                <span>${parentOwner ? `上層承接：${escapeHTML(parentOwner.name)}｜${escapeHTML(parentOwner.role)}` : "目前是最上層角色，沒有再往上的承接人"}</span>
-                <span>${childOwners.length ? `直屬部屬 ${childOwners.length} 人｜切換請從左側堆疊點選` : "目前沒有直屬部屬"}</span>
-              </div>
             </section>
 
             <section class="okr-page-section">
               <div class="okr-page-head">
                 <div>
                   <h4>這個人的 OKR</h4>
-                  <p>只看 ${escapeHTML(selected.name)} 自己負責的目標。上下層關係只留在左邊堆疊導覽。</p>
                 </div>
                 <button class="btn ghost sm" type="button" onclick="addObjective('${selected.id}')">＋ 新增目標</button>
               </div>
@@ -16576,13 +16613,6 @@ with check (true);`;
       });
     }
 
-    function refreshDueBadge() {
-      const badge = document.getElementById("dueBadge");
-      const count = duesList().length;
-      badge.style.display = count ? "inline-block" : "none";
-      badge.textContent = count;
-    }
-
     async function boot() {
       if (hasSupabaseConfig()) {
         await pullRemoteState({ silent: true, skipRender: true });
@@ -16614,7 +16644,6 @@ with check (true);`;
       window.addEventListener("resize", () => {
         if (window.innerWidth > 900) toggleMobileNav(false);
       });
-      refreshDueBadge();
       renderFocus();
       renderOKR();
       renderAnnual();
