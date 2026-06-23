@@ -12347,17 +12347,26 @@ with check (true);`;
     }
 
     function openConfirmModal({ title, message, confirmLabel = "確認", confirmClass = "danger", onConfirm }) {
-      openModal({
+      const shell = document.getElementById("appModal");
+      const launch = () => openModal({
         title,
         subtitle: "這個動作會直接改動目前資料。",
         confirmLabel,
         confirmClass,
         body: `<div class="modal-copy">${escapeHTML(message)}</div>`,
         onSubmit() {
-          onConfirm?.();
           closeModal();
+          onConfirm?.();
         }
       });
+
+      if (shell && !shell.hidden) {
+        closeModal();
+        requestAnimationFrame(launch);
+        return;
+      }
+
+      launch();
     }
 
     function openImprovementModal(itemId = "", preset = {}) {
