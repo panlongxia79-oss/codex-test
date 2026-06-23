@@ -97,6 +97,10 @@
       min-height: 100vh;
     }
 
+    .app > * {
+      min-width: 0;
+    }
+
     aside {
       position: sticky;
       top: 0;
@@ -188,28 +192,117 @@
       padding: 30px 34px 80px;
     }
 
-    .mobile-topbar {
+    .mobile-top-shell {
       display: none;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      align-items: center;
-      gap: 12px;
-      background: var(--side);
-      color: var(--cream);
-      padding: 14px 18px;
     }
 
-    .mobile-topbar button {
-      background: none;
+    .mobile-topbar {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      background:
+        linear-gradient(135deg, rgba(43, 38, 32, 0.98), rgba(59, 52, 43, 0.94)),
+        var(--side);
+      color: var(--cream);
+      padding: 14px 16px 12px;
+    }
+
+    .mobile-topbar-copy {
+      min-width: 0;
+      flex: 1;
+      display: grid;
+      gap: 2px;
+    }
+
+    .mobile-kicker {
+      font-size: 9.5px;
+      letter-spacing: 0.26em;
+      color: rgba(244, 239, 230, 0.62);
+      text-transform: uppercase;
+    }
+
+    .mobile-topbar-copy b {
+      font-size: 18px;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mobile-menu-toggle,
+    .mobile-topbar-action,
+    .mobile-drawer-close {
       border: none;
       color: inherit;
-      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .mobile-menu-toggle {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 18px;
+    }
+
+    .mobile-topbar-action {
+      flex-shrink: 0;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(201, 168, 87, 0.16);
+      color: var(--cream-strong);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .mobile-tabbar {
+      display: none;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 12px 16px 14px;
+      border-bottom: 1px solid rgba(43, 38, 32, 0.08);
+      background:
+        linear-gradient(180deg, rgba(251, 248, 242, 0.98), rgba(244, 239, 230, 0.94));
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .mobile-tabbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .mobile-tab {
+      flex: 0 0 auto;
+      margin: 0;
+      border-radius: 999px;
+      border-color: rgba(163, 145, 112, 0.16);
+      background: rgba(255, 255, 255, 0.76);
+      color: var(--ink-2);
+      padding: 10px 14px;
+      font-size: 12.5px;
+      box-shadow: 0 8px 18px rgba(43, 38, 32, 0.05);
+    }
+
+    .mobile-tab.on {
+      background: var(--side);
+      color: var(--cream);
+      border-color: transparent;
+      box-shadow: 0 12px 24px rgba(43, 38, 32, 0.14);
+    }
+
+    .mobile-drawer-backdrop {
+      display: none;
+    }
+
+    .mobile-drawer-head {
+      display: none;
     }
 
     .page {
       display: none;
       animation: fade 0.22s ease;
+      min-width: 0;
     }
 
     .page.show {
@@ -332,6 +425,12 @@
       padding: 6px 14px;
       border-radius: 6px;
       font-size: 12.5px;
+    }
+
+    .page-tools {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     .btn.danger {
@@ -2863,6 +2962,11 @@
       padding: 7px 11px;
     }
 
+    .table-scroll {
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
     .kpi-row {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
@@ -4961,33 +5065,194 @@
       .app {
         grid-template-columns: 1fr;
       }
+
+      .mobile-top-shell {
+        position: sticky;
+        top: 0;
+        z-index: 120;
+        display: block;
+        box-shadow: 0 14px 30px rgba(43, 38, 32, 0.08);
+      }
+
       aside {
         position: fixed;
-        left: -240px;
-        width: 228px;
-        z-index: 90;
-        transition: 0.25s ease;
+        top: 0;
+        left: -100%;
+        width: min(84vw, 320px);
+        height: 100dvh;
+        z-index: 140;
+        padding-top: 0;
+        box-shadow: 22px 0 44px rgba(20, 15, 11, 0.28);
+        transition: left 0.22s ease;
       }
+
       aside.open {
         left: 0;
       }
+
+      .mobile-drawer-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 24px 10px;
+        border-bottom: 1px solid var(--side-divider);
+        color: var(--side-soft);
+      }
+
+      .mobile-drawer-close {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.08);
+        font-size: 17px;
+      }
+
       .mobile-topbar {
         display: flex;
       }
-      main {
-        padding: 20px 16px 70px;
+
+      .mobile-tabbar {
+        display: flex;
       }
+
+      .mobile-drawer-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 130;
+        display: block;
+        border: none;
+        background: rgba(33, 27, 21, 0.34);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+      }
+
+      body.drawer-open {
+        overflow: hidden;
+      }
+
+      body.drawer-open .mobile-drawer-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      main {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        padding: 18px 14px 88px;
+      }
+
+      .page,
+      .card,
+      .entry-shell,
+      .entry-toolbar,
+      .entry-store-switch,
+      .entry-module-grid,
+      .entry-overview-grid,
+      .entry-workspace-head,
+      .entry-trend-card,
+      .customer-detail-grid,
+      .customer-detail-grid-body,
+      .material-layout,
+      .executive-shell,
+      .org-card,
+      .org-head,
+      .org-blueprint,
+      .org-actions {
+        min-width: 0;
+        max-width: 100%;
+      }
+
+      .ph {
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      .ph h2 {
+        font-size: 30px;
+        line-height: 1.12;
+      }
+
+      .ph p {
+        font-size: 13px;
+        line-height: 1.65;
+      }
+
+      .card,
+      .qsc-record-card,
+      .executive-store-card,
+      .qsc-flow-section,
+      .annual-section,
+      .action-section {
+        padding: 16px;
+        border-radius: 16px;
+      }
+
+      .page-tools,
+      .filters,
+      .entry-toolbar,
+      .entry-module-head,
+      .entry-workspace-head,
+      .executive-store-head,
+      .qsc-record-head,
+      .action-section-head,
+      .google-toolbar,
+      .google-review-head,
+      .google-trend-head,
+      .modal-actions {
+        align-items: stretch;
+      }
+
+      .btn,
+      .btn.sm,
+      .page-tools .btn,
+      .filters select,
+      .entry-store-chip {
+        min-height: 44px;
+      }
+
+      .filters {
+        width: 100%;
+        margin-bottom: 0;
+      }
+
+      .filters select {
+        flex: 1 1 160px;
+        min-width: 0;
+        width: 100%;
+      }
+
+      .entry-module-grid,
+      .entry-overview-grid,
+      .executive-metric-grid,
+      .google-summary-grid,
+      .google-store-kpis,
+      .action-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .entry-module,
+      .entry-summary-item,
+      .entry-overview-card,
+      .action-summary-card {
+        min-width: 0;
+      }
+
+      .executive-table-wrap,
+      .google-table-wrap,
+      .table-scroll {
+        margin: 0 -2px;
+      }
+
       .kr-row,
       .grid2,
       .grid3,
       .entry-store-grid,
-      .entry-module-grid,
-      .entry-overview-grid,
       .executive-store-grid,
-      .executive-metric-grid,
       .google-store-grid,
-      .google-store-kpis,
-      .google-summary-grid,
       .google-trend-grid,
       .customer-detail-grid,
       .customer-detail-grid-body,
@@ -5004,31 +5269,83 @@
         padding: 22px 18px 18px;
       }
 
-      .google-review-head,
-      .google-toolbar,
-      .google-trend-head {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
       .google-trend-current {
         min-width: 0;
         text-align: left;
       }
     }
+
+    @media (max-width: 640px) {
+      .mobile-topbar {
+        padding: 12px 14px 10px;
+      }
+
+      .mobile-tabbar {
+        padding: 10px 14px 12px;
+      }
+
+      .mobile-tab {
+        padding: 9px 13px;
+        font-size: 12px;
+      }
+
+      .ph h2 {
+        font-size: 26px;
+      }
+
+      .entry-module-grid,
+      .entry-overview-grid,
+      .executive-metric-grid,
+      .google-summary-grid,
+      .google-store-kpis,
+      .action-summary,
+      .action-board {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .entry-store-kpi-row,
+      .modal-actions {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .page-tools,
+      .page-tools .btn,
+      .modal-actions .btn {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="mobile-topbar">
-    <button type="button" onclick="document.querySelector('aside').classList.toggle('open')">☰</button>
-    <b>今鶴營運 OS</b>
+  <div class="mobile-top-shell">
+    <div class="mobile-topbar">
+      <button id="mobileMenuToggle" class="mobile-menu-toggle" type="button" aria-label="開啟選單" aria-expanded="false" onclick="toggleMobileNav(true)">☰</button>
+      <div class="mobile-topbar-copy">
+        <span class="mobile-kicker mono" id="mobilePageKicker">today</span>
+        <b id="mobilePageTitle">今日焦點</b>
+      </div>
+      <button class="mobile-topbar-action" type="button" onclick="nav('entry')">回報</button>
+    </div>
+    <div class="mobile-tabbar" aria-label="快速導覽">
+      <button class="navitem mobile-tab on" data-page="focus" type="button"><span>☀</span>焦點</button>
+      <button class="navitem mobile-tab" data-page="dash" type="button"><span>◧</span>儀表板</button>
+      <button class="navitem mobile-tab" data-page="action" type="button"><span>↗</span>改善</button>
+      <button class="navitem mobile-tab" data-page="entry" type="button"><span>✎</span>回報</button>
+      <button class="navitem mobile-tab" data-page="google" type="button"><span>✦</span>Google</button>
+      <button class="navitem mobile-tab" data-page="team" type="button"><span>◉</span>負責人</button>
+    </div>
   </div>
+  <button class="mobile-drawer-backdrop" type="button" aria-label="關閉選單" onclick="toggleMobileNav(false)"></button>
 
   <div class="app">
     <aside>
       <div class="logo">
         <div class="eyebrow mono">JINHER METRIC OPERATING SYSTEM</div>
         <h1>今鶴營運系統 <em>OS</em></h1>
+      </div>
+      <div class="mobile-drawer-head">
+        <span class="mono">ALL PAGES</span>
+        <button class="mobile-drawer-close" type="button" aria-label="關閉選單" onclick="toggleMobileNav(false)">✕</button>
       </div>
       <div class="navlist">
         <button class="navitem on" data-page="focus" type="button"><span>☀</span>今日焦點</button>
@@ -5040,6 +5357,7 @@
         <button class="navitem" data-page="entry" type="button"><span>✎</span>數據回報 <span class="badge" id="dueBadge" style="display:none">0</span></button>
         <button class="navitem" data-page="google" type="button"><span>✦</span>Google商家</button>
         <button class="navitem" data-page="setup" type="button"><span>⚙</span>指標設定</button>
+        <button class="navitem" data-page="supabase" type="button"><span>☁</span>Supabase</button>
         <button class="navitem" data-page="team" type="button"><span>◉</span>負責人管理</button>
         <button class="navitem" data-page="brief" type="button"><span>⟁</span>AI Brief</button>
       </div>
@@ -5068,7 +5386,7 @@
             <h2>組織 OKR</h2>
             <p>目標說明方向，KR 掛到品牌指標上。這樣月底不是寫心得，而是讓數字自己推進進度。</p>
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div class="page-tools">
             <button class="btn sm" type="button" onclick="addObjective()">＋ 新增目標</button>
           </div>
         </div>
@@ -5119,9 +5437,8 @@
           <div>
             <div class="k mono">improvement tracker</div>
             <h2>改善追蹤</h2>
-            <p>這頁專門承接異常。不是再看一次數字，而是把異常變成責任、期限、動作與驗收。</p>
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div class="page-tools">
             <button class="btn sm" type="button" onclick="addImprovement()">＋ 新增改善單</button>
           </div>
         </div>
@@ -5139,7 +5456,7 @@
         <div id="entryBody"></div>
         <div class="card" id="entryHistoryCard" hidden>
           <h3 id="historyTitle">最新日回報</h3>
-          <div style="overflow:auto">
+          <div class="table-scroll">
             <table id="historyTable"></table>
           </div>
         </div>
@@ -5162,11 +5479,22 @@
             <h2>指標設定</h2>
             <p>骨架不是「店 → 指標」，而是「痛點 → 成因 → 指標」。這樣每個數字都知道自己在解什麼問題。</p>
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div class="page-tools">
             <button class="btn sm" type="button" onclick="addPain()">＋ 新增痛點</button>
           </div>
         </div>
         <div id="setupBody"></div>
+      </section>
+
+      <section class="page" id="p-supabase">
+        <div class="ph">
+          <div>
+            <div class="k mono">cloud sync</div>
+            <h2>Supabase 同步</h2>
+            <p>這頁專門處理雲端快照、跨裝置同步與建表設定。資料結構留在指標設定，系統同步留在這裡。</p>
+          </div>
+        </div>
+        <div id="supabaseBody"></div>
       </section>
 
       <section class="page" id="p-team">
@@ -5175,13 +5503,13 @@
             <div class="k mono">owners</div>
             <h2>負責人管理</h2>
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div class="page-tools">
             <button class="btn sm" type="button" onclick="addOwner()">＋ 新增負責人</button>
           </div>
         </div>
         <div id="teamChart"></div>
         <div class="card">
-          <div style="overflow:auto">
+          <div class="table-scroll">
             <table id="teamTable"></table>
           </div>
         </div>
@@ -12286,13 +12614,35 @@ with check (true);`;
       renderBrief();
     }
 
+    function toggleMobileNav(force) {
+      const aside = document.querySelector("aside");
+      if (!aside) return;
+      const open = typeof force === "boolean" ? force : !aside.classList.contains("open");
+      aside.classList.toggle("open", open);
+      document.body.classList.toggle("drawer-open", open);
+      const toggle = document.getElementById("mobileMenuToggle");
+      if (toggle) toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+
+    function syncMobileChrome(page) {
+      const pageEl = document.getElementById(`p-${page}`);
+      const titleEl = document.getElementById("mobilePageTitle");
+      const kickerEl = document.getElementById("mobilePageKicker");
+      if (!pageEl || !titleEl || !kickerEl) return;
+      const title = pageEl.querySelector(".ph h2")?.textContent?.trim() || "今鶴營運系統";
+      const kicker = pageEl.querySelector(".ph .k")?.textContent?.trim() || "jinher os";
+      titleEl.textContent = title;
+      kickerEl.textContent = kicker;
+    }
+
     function nav(page) {
       document.querySelectorAll(".navitem").forEach((button) => {
         button.classList.toggle("on", button.dataset.page === page);
       });
       document.querySelectorAll(".page").forEach((section) => section.classList.remove("show"));
       document.getElementById(`p-${page}`).classList.add("show");
-      document.querySelector("aside").classList.remove("open");
+      toggleMobileNav(false);
+      syncMobileChrome(page);
       if (page === "focus") renderFocus();
       if (page === "okr") renderOKR();
       if (page === "annual") renderAnnual();
@@ -12302,6 +12652,7 @@ with check (true);`;
       if (page === "entry") renderEntry();
       if (page === "google") renderGoogleBusiness();
       if (page === "setup") renderSetup();
+      if (page === "supabase") renderSupabase();
       if (page === "team") renderTeam();
       if (page === "brief") renderBrief();
     }
@@ -12968,22 +13319,18 @@ with check (true);`;
           <div class="action-summary-card">
             <div class="lk">open items</div>
             <div class="lv">${summary.open}</div>
-            <div class="ls">目前還沒結案的改善單數量。</div>
           </div>
           <div class="action-summary-card">
             <div class="lk">overdue</div>
             <div class="lv" style="color:${summary.overdue ? "var(--red)" : "var(--ink)"}">${summary.overdue}</div>
-            <div class="ls">超過截止日還沒收掉的單。</div>
           </div>
           <div class="action-summary-card">
             <div class="lk">review queue</div>
             <div class="lv" style="color:${summary.review ? "var(--green)" : "var(--ink)"}">${summary.review}</div>
-            <div class="ls">已做完，現在只差驗收的改善單。</div>
           </div>
           <div class="action-summary-card">
             <div class="lk">high urgency</div>
             <div class="lv" style="color:${summary.high ? "var(--amber)" : "var(--ink)"}">${summary.high}</div>
-            <div class="ls">急迫度高，優先要被主管盯住。</div>
           </div>
         </div>`;
 
@@ -12992,7 +13339,6 @@ with check (true);`;
           <div class="action-section-head">
             <div>
               <h3>建議先開的改善單</h3>
-              <p class="hint">從今日焦點、儀表板抓還沒被正式承接的異常。先收成單，才追得到。</p>
             </div>
           </div>
           ${suggestions.length ? `<div class="action-suggest-list">${suggestions.map((card) => `
@@ -13015,7 +13361,6 @@ with check (true);`;
           <div class="action-section-head">
             <div>
               <h3>改善單看板</h3>
-              <p class="hint">狀態不能只停在「知道有問題」。至少要走到：開單 → 處理 → 驗收 → 結案。</p>
             </div>
           </div>
           <div class="action-board">
@@ -13032,7 +13377,6 @@ with check (true);`;
               </section>`;
             }).join("")}
           </div>
-          <div class="action-flow-note">管理上真正有用的不是「列出問題」，而是每個問題都能追到負責人、截止日、驗收條件，最後留下結案紀錄。</div>
         </section>`;
 
       container.innerHTML = summaryHtml + suggestionsHtml + boardHtml;
@@ -15141,8 +15485,6 @@ with check (true);`;
 
     function renderSetup() {
       const body = document.getElementById("setupBody");
-      const config = remoteSync.config;
-      const keyPlaceholder = config.key ? `已儲存：${maskSecret(config.key, 14, 8)}` : "sb_publishable_xxx";
       const setupBlocks = state.pains.map((pain) => `
         <div class="pain-block">
           <div class="pain-head">
@@ -15197,6 +15539,25 @@ with check (true);`;
       `).join("");
 
       body.innerHTML = `
+        <div class="card" style="margin-bottom:16px">
+          <div style="display:flex;gap:16px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap">
+            <div>
+              <div class="k mono">layout update</div>
+              <h3 style="margin:6px 0 8px">Supabase 已獨立成一頁</h3>
+              <p class="hint" style="max-width:640px">這頁現在只管痛點、成因、指標。雲端同步、快照與建表設定已移到左側 Supabase。</p>
+            </div>
+            <button class="btn ghost sm" type="button" onclick="nav('supabase')">前往 Supabase</button>
+          </div>
+        </div>
+        ${setupBlocks}
+      `;
+    }
+
+    function supabaseSettingsMarkup() {
+      const config = remoteSync.config;
+      const keyPlaceholder = config.key ? `已儲存：${maskSecret(config.key, 14, 8)}` : "sb_publishable_xxx";
+
+      return `
         <div class="pain-block">
           <div class="pain-head">
             <div>
@@ -15259,8 +15620,13 @@ with check (true);`;
             </div>
           </div>
         </div>
-        ${setupBlocks}
       `;
+    }
+
+    function renderSupabase() {
+      const body = document.getElementById("supabaseBody");
+      if (!body) return;
+      body.innerHTML = supabaseSettingsMarkup();
       refreshSyncStatusUI();
     }
 
@@ -15280,14 +15646,14 @@ with check (true);`;
 
       persistSupabaseConfig(nextConfig);
       setRemoteSyncStatus("ready", "Supabase 設定已儲存，下一步可以先抓雲端或直接上傳本機資料");
-      renderSetup();
+      renderSupabase();
       toast("Supabase 設定已儲存");
     }
 
     function clearSupabaseSettingsFromSetup() {
       clearSupabaseConfig();
       setRemoteSyncStatus("local", "已清掉 Supabase 設定，回到本機模式");
-      renderSetup();
+      renderSupabase();
       toast("已清除雲端設定");
     }
 
@@ -16176,6 +16542,10 @@ with check (true);`;
       });
       initNav();
       initFilters();
+      syncMobileChrome(document.querySelector(".page.show")?.id?.replace("p-", "") || "focus");
+      window.addEventListener("resize", () => {
+        if (window.innerWidth > 900) toggleMobileNav(false);
+      });
       refreshDueBadge();
       renderFocus();
       renderOKR();
@@ -16185,6 +16555,7 @@ with check (true);`;
       renderEntry();
       renderGoogleBusiness();
       renderSetup();
+      renderSupabase();
       renderTeam();
       renderBrief();
       persistLocalState();
