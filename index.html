@@ -10152,21 +10152,43 @@ with check (true);`;
       refreshSyncStatusUI();
     }
 
+    function describeSupabaseError(error) {
+      const raw = `${error?.message || error || ""}`.trim();
+      if (/Failed to fetch|NetworkError/i.test(raw)) {
+        const url = `${remoteSync.config?.url || ""}`.trim();
+        try {
+          const hostname = new URL(url).hostname;
+          if (hostname) {
+            return `連不到 ${hostname}。通常是 Project URL 已失效、Supabase 專案被停用，或目前網路擋掉這個網域`;
+          }
+        } catch (_error) {
+          // Ignore malformed URLs and fall back to a generic hint.
+        }
+        return "連不到 Supabase。先確認 Project URL 是否正確，以及專案現在是不是可用";
+      }
+      return raw || "Supabase 請求失敗";
+    }
+
     async function supabaseRequest(method, query = "", payload = null, extraHeaders = {}) {
       if (!hasSupabaseConfig()) {
         throw new Error("尚未填 Supabase URL 與 publishable key");
       }
       const config = remoteSync.config;
-      const response = await fetch(`${config.url}/rest/v1/${encodeURIComponent(config.table)}${query}`, {
-        method,
-        headers: {
-          apikey: config.key,
-          Authorization: `Bearer ${config.key}`,
-          "Content-Type": "application/json",
-          ...extraHeaders
-        },
-        body: payload ? JSON.stringify(payload) : undefined
-      });
+      let response;
+      try {
+        response = await fetch(`${config.url}/rest/v1/${encodeURIComponent(config.table)}${query}`, {
+          method,
+          headers: {
+            apikey: config.key,
+            Authorization: `Bearer ${config.key}`,
+            "Content-Type": "application/json",
+            ...extraHeaders
+          },
+          body: payload ? JSON.stringify(payload) : undefined
+        });
+      } catch (error) {
+        throw new Error(describeSupabaseError(error));
+      }
 
       const rawText = await response.text();
       let parsed = null;
@@ -10226,8 +10248,9 @@ with check (true);`;
         if (!silent) toast("雲端目前還沒有資料，先沿用本機版本");
         return false;
       } catch (error) {
-        remoteSync.lastError = error.message;
-        setRemoteSyncStatus("error", `雲端讀取失敗：${error.message}`);
+        const detail = describeSupabaseError(error);
+        remoteSync.lastError = detail;
+        setRemoteSyncStatus("error", `雲端讀取失敗：${detail}`);
         if (!silent) toast("雲端讀取失敗，先沿用本機資料");
         return false;
       }
@@ -10260,8 +10283,9 @@ with check (true);`;
         if (!silent) toast("已同步到雲端");
         return true;
       } catch (error) {
-        remoteSync.lastError = error.message;
-        setRemoteSyncStatus("error", `雲端寫入失敗：${error.message}`);
+        const detail = describeSupabaseError(error);
+        remoteSync.lastError = detail;
+        setRemoteSyncStatus("error", `雲端寫入失敗：${detail}`);
         if (!silent) toast("雲端寫入失敗，資料仍保留本機");
         return false;
       } finally {
