@@ -4811,19 +4811,73 @@
 
     .milestone-list {
       display: grid;
-      gap: 14px;
+      gap: 16px;
       position: relative;
-      padding-left: 22px;
     }
 
     .milestone-list::before {
       content: "";
       position: absolute;
-      left: 11px;
-      top: 10px;
-      bottom: 10px;
+      left: 72px;
+      top: 12px;
+      bottom: 12px;
       width: 2px;
-      background: rgba(168, 132, 44, 0.34);
+      background: linear-gradient(180deg, rgba(201, 168, 87, 0.1), rgba(201, 168, 87, 0.34), rgba(201, 168, 87, 0.08));
+    }
+
+    .milestone-row {
+      display: grid;
+      grid-template-columns: 128px minmax(0, 1fr);
+      gap: 18px;
+      align-items: stretch;
+      cursor: pointer;
+    }
+
+    .milestone-point {
+      position: relative;
+      display: grid;
+      justify-items: end;
+      align-content: start;
+      gap: 10px;
+      padding-top: 4px;
+      min-height: 100%;
+    }
+
+    .milestone-date {
+      border-radius: 14px;
+      padding: 8px 12px;
+      min-width: 88px;
+      text-align: right;
+      border: 1px solid rgba(201, 168, 87, 0.22);
+      background: linear-gradient(180deg, rgba(52, 39, 29, 0.92), rgba(29, 23, 18, 0.94));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    .milestone-date strong {
+      display: block;
+      color: var(--cream-strong);
+      font-size: 15px;
+      line-height: 1.1;
+    }
+
+    .milestone-date span {
+      display: block;
+      margin-top: 4px;
+      color: var(--gold-ink-dim);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .milestone-point-dot {
+      position: absolute;
+      right: -8px;
+      top: 22px;
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      background: var(--milestone-color, var(--gold-soft));
+      box-shadow: 0 0 0 4px rgba(35, 27, 20, 0.96);
     }
 
     .milestone-item {
@@ -4836,26 +4890,13 @@
       justify-content: space-between;
       gap: 14px;
       align-items: flex-start;
-      cursor: pointer;
       transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
     }
 
-    .milestone-item:hover {
+    .milestone-row:hover .milestone-item {
       transform: translateY(-1px);
       border-color: rgba(201, 168, 87, 0.28);
       box-shadow: 0 18px 36px rgba(6, 12, 25, 0.2);
-    }
-
-    .milestone-item::before {
-      content: "";
-      position: absolute;
-      left: -18px;
-      top: 24px;
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-      background: var(--milestone-color, var(--gold-soft));
-      box-shadow: 0 0 0 4px rgba(35, 27, 20, 0.96);
     }
 
     .milestone-copy h4 {
@@ -4901,6 +4942,11 @@
       font-size: 11.5px;
     }
 
+    .milestone-progress {
+      color: var(--gold-ink-dim);
+      font-size: 11px;
+    }
+
     @media (max-width: 900px) {
       .annual-goal-top,
       .annual-link-top {
@@ -4922,6 +4968,29 @@
 
       .annual-quarter-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .milestone-list::before {
+        left: 12px;
+      }
+
+      .milestone-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .milestone-point {
+        justify-items: start;
+        padding-left: 28px;
+      }
+
+      .milestone-point-dot {
+        left: 6px;
+        right: auto;
+      }
+
+      .milestone-date {
+        text-align: left;
       }
 
       .org-flow-grid {
@@ -5894,10 +5963,10 @@ with check (true);`;
           }
         ],
         milestoneItems: [
-          { id: "MS-01", title: "OKR Dashboard-v2 上線", detail: "先讓主管能用，再逐步補正式資料源。", progress: 4, total: 26, ownerId: "OWN-01", lane: "系統", status: "done" },
-          { id: "MS-02", title: "今鶴三店母親節檔期上線", detail: "同步對齊主題、素材與前台話術。", progress: 5, total: 5, ownerId: "OWN-02", lane: "行銷", status: "risk" },
-          { id: "MS-03", title: "安平店交接 SOP 試跑", detail: "用一間店先驗證 SOP 與工作日誌回填。", progress: 5, total: 15, ownerId: "OWN-03", lane: "營運", status: "done" },
-          { id: "MS-04", title: "主管課程地圖完成 40 堂", detail: "先完成主管日常管理模組。", progress: 5, total: 20, ownerId: "OWN-01", lane: "人才", status: "risk" }
+          { id: "MS-01", title: "OKR Dashboard-v2 上線", detail: "先讓主管能用，再逐步補正式資料源。", date: "2026-04-26", progress: 4, total: 26, ownerId: "OWN-01", lane: "系統", status: "done" },
+          { id: "MS-02", title: "今鶴三店母親節檔期上線", detail: "同步對齊主題、素材與前台話術。", date: "2026-05-05", progress: 5, total: 5, ownerId: "OWN-02", lane: "行銷", status: "risk" },
+          { id: "MS-03", title: "安平店交接 SOP 試跑", detail: "用一間店先驗證 SOP 與工作日誌回填。", date: "2026-05-15", progress: 5, total: 15, ownerId: "OWN-03", lane: "營運", status: "done" },
+          { id: "MS-04", title: "主管課程地圖完成 40 堂", detail: "先完成主管日常管理模組。", date: "2026-05-20", progress: 5, total: 20, ownerId: "OWN-01", lane: "人才", status: "risk" }
         ]
       },
       improvements: [
@@ -9295,6 +9364,33 @@ with check (true);`;
       return ANNUAL_LEGACY_COLOR_MAP[raw] || raw;
     }
 
+    function annualMilestoneFallbackDate(year, index = 0) {
+      const month = clampNumber(index + 1, 1, 12);
+      return `${year}-${String(month).padStart(2, "0")}-15`;
+    }
+
+    function annualMilestoneLegacyDate(item, year, index = 0) {
+      const fallbackDate = annualMilestoneFallbackDate(year, index);
+      const normalizedCurrentDate = item?.date ? normalizeReportDate(item.date) : "";
+      const legacyMonth = numericValue(item?.progress);
+      const legacyDay = numericValue(item?.total);
+      if (legacyMonth >= 1 && legacyMonth <= 12 && legacyDay >= 1 && legacyDay <= 31) {
+        const legacyDate = normalizeReportDate(`${year}-${String(legacyMonth).padStart(2, "0")}-${String(legacyDay).padStart(2, "0")}`);
+        if (!normalizedCurrentDate || normalizedCurrentDate === fallbackDate) return legacyDate;
+      }
+      return normalizedCurrentDate || fallbackDate;
+    }
+
+    function formatMilestonePoint(dateLike = "", fallbackYear = 2026) {
+      const normalized = normalizeReportDate(dateLike || `${fallbackYear}-01-15`, Date.parse(`${fallbackYear}-01-15T00:00:00+08:00`));
+      const [year, month, day] = normalized.split("-");
+      return {
+        full: normalized,
+        monthDay: `${Number(month)}/${day}`,
+        yearMonth: `${year}.${month}`
+      };
+    }
+
     function annualGoalPaletteHTML(selectedColor = ANNUAL_GOAL_COLORS[0]) {
       const normalizedColor = normalizeAnnualGoalColor(selectedColor);
       return `<div class="annual-palette">${ANNUAL_GOAL_COLORS.map((color) => `
@@ -9308,6 +9404,7 @@ with check (true);`;
     function normalizeAnnualPlan(plan) {
       const base = structuredClone(BASE.annualPlan);
       const next = plan && typeof plan === "object" ? { ...base, ...plan } : base;
+      const annualYear = numericValue(next.year) || base.year;
       next.goals = Array.isArray(next.goals) ? next.goals.map((goal, index) => ({
         id: goal.id || `AG-${String(index + 1).padStart(2, "0")}`,
         title: (goal.title || `年度目標 ${index + 1}`).toString().trim(),
@@ -9334,6 +9431,7 @@ with check (true);`;
         id: item.id || `MS-${String(index + 1).padStart(2, "0")}`,
         title: (item.title || "").toString().trim(),
         detail: (item.detail || "").toString().trim(),
+        date: normalizeReportDate(annualMilestoneLegacyDate(item, annualYear, index), Date.parse(`${annualMilestoneFallbackDate(annualYear, index)}T00:00:00+08:00`)),
         progress: numericValue(item.progress),
         total: Math.max(1, numericValue(item.total) || 1),
         ownerId: (item.ownerId || "").toString().trim(),
@@ -9341,7 +9439,7 @@ with check (true);`;
         color: normalizeAnnualGoalColor(item.color, index),
         status: item.status === "risk" ? "risk" : "done"
       })) : structuredClone(base.milestoneItems);
-      next.year = numericValue(next.year) || base.year;
+      next.year = annualYear;
       next.brand = (next.brand || base.brand).toString().trim();
       next.summary = (next.summary || base.summary).toString().trim();
       next.currentMonth = clampNumber(numericValue(next.currentMonth) || base.currentMonth, 1, 12);
@@ -12634,6 +12732,10 @@ with check (true);`;
               <textarea id="milestoneDetail" name="detail" rows="3" placeholder="例如：先完成主管日常管理模組。">${escapeHTML(milestone?.detail || "")}</textarea>
             </div>
             <div>
+              <label class="fl" for="milestoneDate">時間點</label>
+              <input id="milestoneDate" name="date" type="date" value="${escapeHTML(milestone?.date || annualMilestoneFallbackDate(state.annualPlan.year, state.annualPlan.milestoneItems.length))}">
+            </div>
+            <div>
               <label class="fl" for="milestoneProgress">已完成</label>
               <input id="milestoneProgress" name="progress" type="number" step="1" value="${milestone?.progress ?? 0}">
             </div>
@@ -12667,6 +12769,7 @@ with check (true);`;
           const payload = {
             title,
             detail: (formData.get("detail") || "").toString().trim(),
+            date: normalizeReportDate(formData.get("date") || annualMilestoneFallbackDate(state.annualPlan.year, state.annualPlan.milestoneItems.length)),
             progress,
             total,
             ownerId: (formData.get("ownerId") || "").toString().trim(),
@@ -13016,17 +13119,30 @@ with check (true);`;
         `;
       }).join("");
 
-      const milestonesHtml = plan.milestoneItems.map((item) => {
+      const milestonesHtml = [...plan.milestoneItems]
+        .sort((a, b) => parseDateValue(a.date) - parseDateValue(b.date))
+        .map((item) => {
         const owner = ownerOf(item.ownerId);
+        const point = formatMilestonePoint(item.date, plan.year);
         return `
-          <article class="milestone-item" style="--milestone-color:${item.color || (item.status === "done" ? "#6f8452" : "#8c4e43")}" role="button" tabindex="0" onclick="openMilestoneModal('${item.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openMilestoneModal('${item.id}')}">
-            <div class="milestone-copy">
-              <h4 class="${item.progress >= item.total ? "done" : ""}">${escapeHTML(item.title)}</h4>
-              <p>${escapeHTML(item.detail)}</p>
+          <article class="milestone-row" style="--milestone-color:${item.color || (item.status === "done" ? "#6f8452" : "#8c4e43")}" role="button" tabindex="0" onclick="openMilestoneModal('${item.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openMilestoneModal('${item.id}')}">
+            <div class="milestone-point">
+              <div class="milestone-date">
+                <strong>${escapeHTML(point.monthDay)}</strong>
+                <span>${escapeHTML(point.yearMonth)}</span>
+              </div>
+              <div class="milestone-point-dot"></div>
             </div>
-            <div class="milestone-meta">
-              <span class="${item.status === "done" ? "milestone-badge" : "milestone-badge warn"}">${item.progress}/${item.total}</span>
-              <div class="milestone-owner">${escapeHTML(item.lane)}${owner ? ` · ${escapeHTML(owner.name)}` : ""}</div>
+            <div class="milestone-item">
+              <div class="milestone-copy">
+                <h4 class="${item.progress >= item.total ? "done" : ""}">${escapeHTML(item.title)}</h4>
+                <p>${escapeHTML(item.detail)}</p>
+              </div>
+              <div class="milestone-meta">
+                <span class="${item.status === "done" ? "milestone-badge" : "milestone-badge warn"}">${item.progress}/${item.total}</span>
+                <div class="milestone-owner">${escapeHTML(item.lane)}${owner ? ` · ${escapeHTML(owner.name)}` : ""}</div>
+                <div class="milestone-progress">${escapeHTML(point.full)}</div>
+              </div>
             </div>
           </article>
         `;
