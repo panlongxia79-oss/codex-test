@@ -7981,6 +7981,10 @@ with check (true);`;
       return storeRecordSummaries().find((record) => record.storeId === storeId) || null;
     }
 
+    function latestStoreRecordWithField(storeId = "", fieldKey = "") {
+      return storeRecordSummaries().find((record) => record.storeId === storeId && hasStoreFieldValue(record, fieldKey)) || null;
+    }
+
     function googleStoreSnapshot(storeId = "") {
       const store = storeOf(storeId);
       const raw = googleRawReviewsFor(storeId);
@@ -7990,7 +7994,8 @@ with check (true);`;
       const monthDaily = googleBusinessRowsInMonth(daily, (row) => [row.date]);
       const monthWeekly = googleBusinessRowsInMonth(weekly, (row) => [row.periodStart, row.periodEnd]);
       const monthSummary = googleBusinessMonthSummary(daily, raw);
-      const latestRecord = latestStoreRecord(storeId);
+      const latestSummaryRecord = latestStoreRecord(storeId);
+      const latestGoogleRecord = latestStoreRecordWithField(storeId, "googleRating");
       const monthScope = googleBusinessVisibleMonthScope({
         rawRows: raw,
         dailyRows: daily,
@@ -8006,7 +8011,8 @@ with check (true);`;
         monthWeekly,
         monthScope,
         monthSummary,
-        latestRecord,
+        latestRecord: latestGoogleRecord || latestSummaryRecord,
+        latestSummaryRecord,
         latestDaily: monthDaily[0] || daily[0] || null,
         latestWeekly: monthWeekly[0] || weekly[0] || null
       };
@@ -8983,6 +8989,85 @@ with check (true);`;
         activeCustomerStores: stores.filter((item) => item.customer.records.length).length,
         activeMaterialStores: stores.filter((item) => item.material.records.length).length
       };
+    }
+
+    function storeSummaryRecordForPeriod(storeId = "", period = entryCurrentPeriod()) {
+      return storeRecordSummaries().find((record) => record.storeId === storeId && (!period || record.period === period)) || null;
+    }
+
+    function dashboardStoreRecord(storeId = "", period = entryCurrentPeriod()) {
+      const executive = executiveStoreSummary(storeId, period);
+      const summaryRecord = storeSummaryRecordForPeriod(storeId, period);
+      const customer = executive.customer;
+      const material = executive.material;
+      const frontQsc = frontQscSummary(storeId, period);
+      const latestGoogleRecord = latestStoreRecordWithField(storeId, "googleRating");
+      const hasCurrentBackQsc = summaryRecord ? hasStoreFieldValue(summaryRecord, "backQsc") : false;
+      const hasCurrentGoogleRating = summaryRecord ? hasStoreFieldValue(summaryRecord, "googleRating") : false;
+      const hasLatestGoogleRating = latestGoogleRecord ? hasStoreFieldValue(latestGoogleRecord, "googleRating") : false;
+      const revenue = numericValue(executive.revenue);
+      const targetRevenue = numericValue(summaryRecord?.targetRevenue);
+      const laborRatio = executive.personnel.records.length
+        ? numericValue(executive.personnel.laborRatio)
+        : safeDivide(numericValue(summaryRecord?.laborCost), revenue);
+      const foodRatio = material.revenueRecordCount
+        ? numericValue(material.materialRatio)
+        : safeDivide(numericValue(summaryRecord?.foodCost), revenue);
+      const avgQsc = averageAvailableValues([
+        frontQsc.records.length ? numericValue(frontQsc.avgFrontQsc) : NaN,
+        hasCurrentBackQsc ? numericValue(summaryRecord.backQsc) : NaN
+      ]);
+      const totalCustomers = numericValue(customer.totalTables) || numericValue(summaryRecord?.totalCustomers);
+      const returningCustomers = numericValue(customer.returningMembers) || numericValue(summaryRecord?.returningCustomers);
+      const complaintCount = frontQsc.records.length
+        ? frontQsc.records.reduce((sum, source) => sum + frontQscComplaintCountFromSource(source), 0)
+        : numericValue(summaryRecord?.complaintCount);
+      const currentGoogleRating = numericValue(customer.latestGoogleRating);
+      const fallbackGoogleRating = hasCurrentGoogleRating
+        ? numericValue(summaryRecord.googleRating)
+        : hasLatestGoogleRating
+          ? numericValue(latestGoogleRecord.googleRating)
+          : 0;
+      const googleRating = currentGoogleRating > 0 ? currentGoogleRating : fallbackGoogleRating;
+      const achievement = safeDivide(revenue, targetRevenue);
+      const complaintRate = safeDivide(complaintCount * 100, totalCustomers);
+      const healthScore =
+        normalize(achievement, 0.7, 1.05) * 30 +
+        (1 - normalize(laborRatio, 0.22, 0.34)) * 20 +
+        (1 - normalize(foodRatio, 0.24, 0.36)) * 20 +
+        normalize(avgQsc, 70, 95) * 20 +
+        normalize(googleRating, 4.2, 5.0) * 10;
+      return {
+        storeId,
+        period,
+        store: executive.store,
+        summaryRecord,
+        personnel: executive.personnel,
+        customer,
+        material,
+        frontQsc,
+        revenue,
+        targetRevenue,
+        laborRatio,
+        foodRatio,
+        avgQsc,
+        totalCustomers,
+        returningCustomers,
+        complaintCount,
+        complaintRate,
+        googleRating,
+        achievement,
+        healthScore,
+        latestUpdatedAt: Math.max(
+          numericValue(executive.latestUpdatedAt),
+          numericValue(summaryRecord?.updatedAt),
+          frontQsc.records.reduce((max, source) => Math.max(max, numericValue(source.ts)), 0)
+        )
+      };
+    }
+
+    function dashboardStoreRecords(period = entryCurrentPeriod()) {
+      return state.stores.map((store) => dashboardStoreRecord(store.id, period));
     }
 
     function materialMissingDatesPreview(dates = [], limit = 4) {
@@ -11554,10 +11639,7 @@ with check (true);`;
 
     function improvementStoreHealthText(storeId = "", period = "") {
       if (!storeId) return "";
-      const record = storeRecordSummaries().find((item) => item.storeId === storeId && (!period || item.period === period))
-        || storeRecordSummaries().find((item) => item.storeId === storeId);
-      if (!record) return "";
-      const derived = deriveStoreRecord(record);
+      const derived = dashboardStoreRecord(storeId, period || entryCurrentPeriod());
       return `${storeOf(storeId)?.name || ""} 達成率 ${formatPct(derived.achievement)} / QSC ${derived.avgQsc.toFixed(1)} / 客訴率 ${derived.complaintRate.toFixed(2)}%`;
     }
 
@@ -11627,8 +11709,7 @@ with check (true);`;
           });
         });
 
-      storeRecordSummaries()
-        .map(deriveStoreRecord)
+      dashboardStoreRecords(entryCurrentPeriod())
         .sort((a, b) => a.healthScore - b.healthScore)
         .slice(0, 3)
         .forEach((record) => {
@@ -12964,8 +13045,7 @@ with check (true);`;
 
     function renderFocus() {
       const due = duesList();
-      const riskyStore = storeRecordSummaries()
-        .map(deriveStoreRecord)
+      const riskyStore = dashboardStoreRecords(entryCurrentPeriod())
         .sort((a, b) => a.healthScore - b.healthScore);
       const objectives = state.objectives;
       const focusEl = document.getElementById("focusBody");
@@ -13192,9 +13272,9 @@ with check (true);`;
       const filter = document.getElementById("storeFilter");
       const periodFilter = document.getElementById("periodFilter");
       const storeValue = filter.value || "all";
-      const records = storeRecordSummaries()
-        .filter((record) => storeValue === "all" || record.storeId === storeValue)
-        .map(deriveStoreRecord);
+      const activePeriod = entryCurrentPeriod();
+      const records = dashboardStoreRecords(activePeriod)
+        .filter((record) => storeValue === "all" || record.storeId === storeValue);
       const metrics = allMetrics();
 
       const totalMetrics = metrics.length;
@@ -13220,7 +13300,7 @@ with check (true);`;
         return `<div class="kpi">
           <div class="layerbar ${tag.cls === "good" ? "lead" : tag.cls === "warn" ? "proc" : "lag"}"></div>
           <div class="lab"><span>${storeOf(record.storeId).name}</span><span class="status"><span class="dot ${tag.cls}"></span>${tag.label}</span></div>
-          <div class="val">${currency(record.revenue)} <small>/ ${currency(record.targetRevenue)}</small></div>
+          <div class="val">${record.revenue ? currency(record.revenue) : "—"} <small>/ ${record.targetRevenue ? currency(record.targetRevenue) : "—"}</small></div>
           <div class="delta ${record.achievement >= 1 ? "up" : record.achievement >= 0.88 ? "flat" : "down"}">${record.achievement >= 1 ? "▲" : record.achievement >= 0.88 ? "—" : "▼"} ${formatPct(record.achievement)}</div>
           <div class="tgt">QSC ${record.avgQsc.toFixed(1)} · 人事 ${formatPct(record.laborRatio)} · 物料 ${formatPct(record.foodRatio)}</div>
           <div style="margin-top:10px"><button class="btn ghost sm" type="button" onclick="createImprovementFromStore('${record.storeId}', '${record.period}', 'dash')">立整店改善單</button></div>
@@ -15538,19 +15618,7 @@ with check (true);`;
         </div>
       `).join("");
 
-      body.innerHTML = `
-        <div class="card" style="margin-bottom:16px">
-          <div style="display:flex;gap:16px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap">
-            <div>
-              <div class="k mono">layout update</div>
-              <h3 style="margin:6px 0 8px">Supabase 已獨立成一頁</h3>
-              <p class="hint" style="max-width:640px">這頁現在只管痛點、成因、指標。雲端同步、快照與建表設定已移到左側 Supabase。</p>
-            </div>
-            <button class="btn ghost sm" type="button" onclick="nav('supabase')">前往 Supabase</button>
-          </div>
-        </div>
-        ${setupBlocks}
-      `;
+      body.innerHTML = setupBlocks;
     }
 
     function supabaseSettingsMarkup() {
@@ -16361,7 +16429,7 @@ with check (true);`;
             }))
           }))
         })),
-        stores: storeRecordSummaries().map((record) => deriveStoreRecord(record)),
+        stores: dashboardStoreRecords(entryCurrentPeriod()),
         storeSources: allStoreSourceRecords(),
         personnelRecords: allPersonnelRecords().map((record) => ({
           ...enrichPersonnelRecord(record),
