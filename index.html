@@ -7646,15 +7646,76 @@ with check (true);`;
         .map((row) => Object.fromEntries(headers.map((header, index) => [header, row[index] ?? ""])));
     }
 
-    const GOOGLE_BUSINESS_EXPORT_SOURCES = [
-      { url: "./google-review-export.json", label: "static_snapshot" },
-      { url: "/__api/google-review-export", label: "local_preview_api" }
-    ];
+    const GOOGLE_BUSINESS_SUPABASE_SNAPSHOT_ID = "jinher-os-v1-google-review-export";
+
+    function isLocalPreviewHost() {
+      return ["127.0.0.1", "localhost"].includes(window.location.hostname);
+    }
+
+    function googleBusinessSupabaseConfig() {
+      const injected = injectedSupabaseConfig?.();
+      if (injected?.url && injected?.key && injected?.table) {
+        return injected;
+      }
+      try {
+        const saved = localStorage.getItem(SUPABASE_CONFIG_KEY);
+        if (!saved) return null;
+        const normalized = normalizeSupabaseConfig(JSON.parse(saved));
+        if (!normalized?.url || !normalized?.key || !normalized?.table) return null;
+        return normalized;
+      } catch (_error) {
+        return null;
+      }
+    }
+
+    function googleBusinessExportSources() {
+      const supabase = { type: "supabase", label: "supabase_shared_snapshot" };
+      const localApi = { type: "http", url: "/__api/google-review-export", label: "local_preview_api" };
+      const staticSnapshot = { type: "http", url: "./google-review-export.json", label: "static_snapshot" };
+      return isLocalPreviewHost()
+        ? [localApi, supabase, staticSnapshot]
+        : [supabase, localApi, staticSnapshot];
+    }
+
+    async function fetchGoogleBusinessExportFromSupabase() {
+      const config = googleBusinessSupabaseConfig();
+      if (!config?.url || !config?.key || !config?.table) {
+        throw new Error("supabase_shared_snapshot missing config");
+      }
+      const response = await fetch(
+        `${config.url}/rest/v1/${encodeURIComponent(config.table)}?id=eq.${encodeURIComponent(GOOGLE_BUSINESS_SUPABASE_SNAPSHOT_ID)}&select=payload,updated_at`,
+        {
+          cache: "no-store",
+          headers: {
+            apikey: config.key,
+            Authorization: `Bearer ${config.key}`
+          }
+        }
+      );
+      if (!response.ok) {
+        const rawText = await response.text();
+        throw new Error(`supabase_shared_snapshot ${response.status} ${rawText || ""}`.trim());
+      }
+      const rows = await response.json();
+      const row = Array.isArray(rows) ? rows[0] : null;
+      const payload = row?.payload;
+      if (!payload?.manifest || typeof payload.rawText !== "string" || typeof payload.dailyText !== "string" || typeof payload.weeklyText !== "string") {
+        throw new Error("supabase_shared_snapshot payload invalid");
+      }
+      if (!payload.manifestLastModified && row?.updated_at) {
+        payload.manifestLastModified = row.updated_at;
+      }
+      return payload;
+    }
 
     async function fetchGoogleBusinessExport() {
       const errors = [];
-      for (const source of GOOGLE_BUSINESS_EXPORT_SOURCES) {
+      for (const source of googleBusinessExportSources()) {
         try {
+          if (source.type === "supabase") {
+            return await fetchGoogleBusinessExportFromSupabase();
+          }
+
           const response = await fetch(source.url, { cache: "no-store" });
           if (!response.ok) {
             let message = `${source.label} ${response.status}`;
