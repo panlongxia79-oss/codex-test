@@ -12121,6 +12121,21 @@ with check (true);`;
         .join("");
     }
 
+    function painMatrixOptions(selected = "") {
+      const presets = [
+        "客戶 · 熟客矩陣（滿意高 × 回訪低）",
+        "品管 · 品質矩陣（成熟度低 × 意識高）",
+        "財務 · 營收矩陣（意願高 × 定價低）"
+      ];
+      const active = selected || presets[0];
+      const options = new Set(presets);
+      state.pains.forEach((pain) => {
+        if (pain.matrix) options.add(pain.matrix);
+      });
+      options.add(active);
+      return [...options].map((value) => `<option value="${escapeHTML(value)}" ${value === active ? "selected" : ""}>${escapeHTML(value)}</option>`).join("");
+    }
+
     function closeModal() {
       const shell = document.getElementById("appModal");
       const form = document.getElementById("modalForm");
@@ -12384,7 +12399,7 @@ with check (true);`;
             </div>
             <div class="span-2">
               <label class="fl" for="painMatrix">矩陣定位</label>
-              <input id="painMatrix" name="matrix" type="text" value="${escapeHTML(pain?.matrix || "客戶 · 熟客矩陣（滿意高 × 回訪低）")}" placeholder="例如：客戶 · 熟客矩陣（滿意高 × 回訪低）">
+              <select id="painMatrix" name="matrix">${painMatrixOptions(pain?.matrix || "客戶 · 熟客矩陣（滿意高 × 回訪低）")}</select>
             </div>
           </div>
         `,
