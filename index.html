@@ -5866,6 +5866,8 @@ with check (true);`;
         {
           id: "P-01",
           title: "熟客回流節奏不穩，來一次就消失",
+          matrixCategory: "customer",
+          matrixKey: "loyal_customers",
           matrix: "客戶 · 熟客矩陣（滿意高 × 回訪低）",
           causes: [
             {
@@ -5882,6 +5884,8 @@ with check (true);`;
         {
           id: "P-02",
           title: "服務與出餐品質在不同店之間不穩",
+          matrixCategory: "quality",
+          matrixKey: "quality_maturity",
           matrix: "品管 · 品質矩陣（成熟度低 × 意識高）",
           causes: [
             {
@@ -5898,6 +5902,8 @@ with check (true);`;
         {
           id: "P-03",
           title: "營收有做出來，但獲利品質不穩",
+          matrixCategory: "finance",
+          matrixKey: "revenue",
           matrix: "財務 · 營收矩陣（意願高 × 定價低）",
           causes: [
             {
@@ -12142,19 +12148,216 @@ with check (true);`;
         .join("");
     }
 
-    function painMatrixOptions(selected = "") {
-      const presets = [
-        "客戶 · 熟客矩陣（滿意高 × 回訪低）",
-        "品管 · 品質矩陣（成熟度低 × 意識高）",
-        "財務 · 營收矩陣（意願高 × 定價低）"
-      ];
-      const active = selected || presets[0];
-      const options = new Set(presets);
-      state.pains.forEach((pain) => {
-        if (pain.matrix) options.add(pain.matrix);
+    const PAIN_MATRIX_GROUPS = [
+      {
+        key: "quality",
+        label: "品管",
+        options: [
+          {
+            key: "quality_maturity",
+            label: "品質矩陣",
+            axes: "流程成熟度低/高 × 品質意識弱/強",
+            summary: "流程成熟度 × 品質意識",
+            aliases: ["品管 · 品質矩陣（成熟度低 × 意識高）", "品管 · 品質矩陣（流程成熟度 × 品質意識）"]
+          },
+          {
+            key: "management",
+            label: "管理矩陣",
+            axes: "預防弱/強 × 處理弱/強",
+            summary: "預防 × 處理",
+            aliases: ["品管 · 管理矩陣（預防 × 處理）"]
+          }
+        ]
+      },
+      {
+        key: "customer",
+        label: "客戶",
+        options: [
+          {
+            key: "new_customers",
+            label: "新客矩陣",
+            axes: "不知道/知道 × 來訪/不來訪",
+            summary: "知道度 × 來訪",
+            aliases: ["客戶 · 新客矩陣（知道度 × 來訪）"]
+          },
+          {
+            key: "loyal_customers",
+            label: "熟客矩陣",
+            axes: "不滿意/滿意 × 回訪/不回訪",
+            summary: "滿意度 × 回訪",
+            aliases: ["客戶 · 熟客矩陣（滿意高 × 回訪低）", "客戶 · 熟客矩陣（滿意度 × 回訪）"]
+          },
+          {
+            key: "visit_frequency",
+            label: "來訪次數矩陣",
+            axes: "沒理由/有理由 × 有機制/沒機制",
+            summary: "來訪理由 × 機制",
+            aliases: ["客戶 · 來訪次數矩陣（來訪理由 × 機制）"]
+          },
+          {
+            key: "avg_spend",
+            label: "客單價矩陣",
+            axes: "低意願/高意願 × 有機會/沒機會",
+            summary: "消費意願 × 機會",
+            aliases: ["客戶 · 客單價矩陣（意願 × 機會）"]
+          }
+        ]
+      },
+      {
+        key: "team",
+        label: "同仁",
+        options: [
+          {
+            key: "retention",
+            label: "留任矩陣",
+            axes: "滿意度低/高 × 離開成本高/低",
+            summary: "滿意度 × 離開成本",
+            aliases: ["同仁 · 留任矩陣（滿意度 × 離開成本）"]
+          },
+          {
+            key: "performance",
+            label: "效能矩陣",
+            axes: "能力不足/能力匹配 × 有動力/沒動力",
+            summary: "能力 × 動力",
+            aliases: ["同仁 · 效能矩陣（能力 × 動力）"]
+          }
+        ]
+      },
+      {
+        key: "finance",
+        label: "財務",
+        options: [
+          {
+            key: "revenue",
+            label: "營收矩陣",
+            axes: "意願低/意願高 × 定價強/定價弱",
+            summary: "意願 × 定價",
+            aliases: ["財務 · 營收矩陣（意願高 × 定價低）", "財務 · 營收矩陣（意願 × 定價）"]
+          },
+          {
+            key: "cost",
+            label: "費用矩陣",
+            axes: "看不見/看得見 × 可控/不可控",
+            summary: "可見度 × 可控性",
+            aliases: ["財務 · 費用矩陣（可見度 × 可控性）"]
+          }
+        ]
+      },
+      {
+        key: "brand",
+        label: "品牌",
+        options: [
+          {
+            key: "awareness",
+            label: "知名度矩陣",
+            axes: "沒機會/有機會 × 記得住/記不住",
+            summary: "曝光機會 × 記憶度",
+            aliases: ["品牌 · 知名度矩陣（機會 × 記憶）"]
+          },
+          {
+            key: "affinity",
+            label: "好感度矩陣",
+            axes: "期待低/期待高 × 實感好/實感差",
+            summary: "期待 × 實感",
+            aliases: ["品牌 · 好感度矩陣（期待 × 實感）"]
+          }
+        ]
+      }
+    ];
+    const PAIN_MATRIX_GROUP_MAP = Object.fromEntries(PAIN_MATRIX_GROUPS.map((group) => [group.key, group]));
+    const PAIN_MATRIX_OPTION_MAP = Object.fromEntries(
+      PAIN_MATRIX_GROUPS.flatMap((group) =>
+        group.options.map((option) => [
+          option.key,
+          {
+            ...option,
+            categoryKey: group.key,
+            categoryLabel: group.label
+          }
+        ])
+      )
+    );
+    const PAIN_MATRIX_ALIAS_MAP = (() => {
+      const lookup = new Map();
+      PAIN_MATRIX_GROUPS.forEach((group) => {
+        group.options.forEach((option) => {
+          const values = [
+            `${group.label} · ${option.label}（${option.axes}）`,
+            `${group.label} · ${option.label}（${option.summary}）`,
+            `${group.label} · ${option.label}`,
+            option.label,
+            ...(option.aliases || [])
+          ];
+          values.forEach((value) => {
+            const normalized = (value || "").toString().trim();
+            if (normalized) lookup.set(normalized, { categoryKey: group.key, matrixKey: option.key });
+          });
+        });
       });
-      options.add(active);
-      return [...options].map((value) => `<option value="${escapeHTML(value)}" ${value === active ? "selected" : ""}>${escapeHTML(value)}</option>`).join("");
+      return lookup;
+    })();
+
+    function painMatrixDisplayValue(categoryKey = "", matrixKey = "") {
+      const group = PAIN_MATRIX_GROUP_MAP[categoryKey];
+      const option = PAIN_MATRIX_OPTION_MAP[matrixKey];
+      if (!group || !option || option.categoryKey !== categoryKey) return "";
+      return `${group.label} · ${option.label}（${option.axes}）`;
+    }
+
+    function inferPainMatrixSelection(pain = {}) {
+      const rawMatrix = (pain?.matrix || "").toString().trim();
+      if (pain?.matrixCategory && pain?.matrixKey) {
+        const directValue = painMatrixDisplayValue(pain.matrixCategory, pain.matrixKey) || rawMatrix;
+        return { categoryKey: pain.matrixCategory, matrixKey: pain.matrixKey, matrix: directValue };
+      }
+      if (rawMatrix && PAIN_MATRIX_ALIAS_MAP.has(rawMatrix)) {
+        const matched = PAIN_MATRIX_ALIAS_MAP.get(rawMatrix);
+        return {
+          categoryKey: matched.categoryKey,
+          matrixKey: matched.matrixKey,
+          matrix: painMatrixDisplayValue(matched.categoryKey, matched.matrixKey) || rawMatrix
+        };
+      }
+      const fallbackMatch = Object.values(PAIN_MATRIX_OPTION_MAP).find((option) =>
+        rawMatrix && rawMatrix.includes(option.categoryLabel) && rawMatrix.includes(option.label)
+      );
+      if (fallbackMatch) {
+        return {
+          categoryKey: fallbackMatch.categoryKey,
+          matrixKey: fallbackMatch.key,
+          matrix: painMatrixDisplayValue(fallbackMatch.categoryKey, fallbackMatch.key) || rawMatrix
+        };
+      }
+      return { categoryKey: "", matrixKey: "", matrix: rawMatrix };
+    }
+
+    function painMatrixCategoryOptions(selected = "") {
+      return [`<option value="">先選五大面向</option>`]
+        .concat(
+          PAIN_MATRIX_GROUPS.map((group) => `<option value="${group.key}" ${group.key === selected ? "selected" : ""}>${group.label}｜${group.options.length} 個細矩陣</option>`)
+        )
+        .join("");
+    }
+
+    function painMatrixDetailOptions(categoryKey = "", selected = "", fallbackValue = "") {
+      const group = PAIN_MATRIX_GROUP_MAP[categoryKey];
+      if (!group) return `<option value="">先選上面的五大面向</option>`;
+      const options = [`<option value="">再選細節矩陣</option>`];
+      group.options.forEach((option) => {
+        options.push(`<option value="${option.key}" ${option.key === selected ? "selected" : ""}>${option.label}｜${option.axes}</option>`);
+      });
+      if (fallbackValue && !group.options.some((option) => option.key === selected)) {
+        options.push(`<option value="__legacy__" selected>既有值｜${escapeHTML(fallbackValue)}</option>`);
+      }
+      return options.join("");
+    }
+
+    function painMatrixSummary(categoryKey = "", matrixKey = "", fallbackValue = "") {
+      const option = PAIN_MATRIX_OPTION_MAP[matrixKey];
+      if (option && option.categoryKey === categoryKey) {
+        return `${option.categoryLabel} → ${option.label}｜${option.axes}`;
+      }
+      return fallbackValue ? `既有值｜${fallbackValue}` : "先選五大面向，再選細節矩陣";
     }
 
     function closeModal() {
@@ -12408,6 +12611,7 @@ with check (true);`;
 
     function openPainModal(painId = "") {
       const pain = painId ? state.pains.find((item) => item.id === painId) : null;
+      const matrixSeed = inferPainMatrixSelection(pain);
       openModal({
         title: pain ? "編輯痛點" : "新增痛點",
         subtitle: "痛點是最上層的管理問題，不是指標名。先把問題講準，後面成因和指標才不會亂掉。",
@@ -12418,33 +12622,70 @@ with check (true);`;
               <label class="fl" for="painTitle">痛點名稱</label>
               <input id="painTitle" name="title" type="text" value="${escapeHTML(pain?.title || "")}" placeholder="例如：熟客回流節奏不穩，來一次就消失">
             </div>
-            <div class="span-2">
-              <label class="fl" for="painMatrix">矩陣定位</label>
+            <div>
+              <label class="fl" for="painMatrixCategory">主面向</label>
               <div class="select-shell">
-                <select id="painMatrix" name="matrix">${painMatrixOptions(pain?.matrix || "客戶 · 熟客矩陣（滿意高 × 回訪低）")}</select>
+                <select id="painMatrixCategory" name="matrixCategory">${painMatrixCategoryOptions(matrixSeed.categoryKey)}</select>
               </div>
             </div>
+            <div>
+              <label class="fl" for="painMatrix">細節矩陣</label>
+              <div class="select-shell">
+                <select id="painMatrix" name="matrixKey">${painMatrixDetailOptions(matrixSeed.categoryKey, matrixSeed.matrixKey, matrixSeed.matrix)}</select>
+              </div>
+            </div>
+            <div class="span-2 modal-copy" id="painMatrixSummary">${painMatrixSummary(matrixSeed.categoryKey, matrixSeed.matrixKey, matrixSeed.matrix)}</div>
           </div>
         `,
         onSubmit(formData) {
           const title = (formData.get("title") || "").toString().trim();
-          const matrix = (formData.get("matrix") || "").toString().trim();
+          const matrixCategory = (formData.get("matrixCategory") || "").toString().trim();
+          const matrixKey = (formData.get("matrixKey") || "").toString().trim();
+          const matrix = painMatrixDisplayValue(matrixCategory, matrixKey);
           if (!title) {
             toast("痛點名稱不能空白");
             return;
           }
+          if (!matrixCategory || !matrixKey || !matrix) {
+            toast("先選五大面向，再選細節矩陣");
+            return;
+          }
           if (pain) {
             pain.title = title;
+            pain.matrixCategory = matrixCategory;
+            pain.matrixKey = matrixKey;
             pain.matrix = matrix;
             toast("已更新痛點");
           } else {
-            state.pains.push({ id: generateId("P"), title, matrix, causes: [] });
+            state.pains.push({ id: generateId("P"), title, matrixCategory, matrixKey, matrix, causes: [] });
             toast("已新增痛點");
           }
           closeModal();
           rerenderAll();
         }
       });
+
+      const categorySelect = document.getElementById("painMatrixCategory");
+      const matrixSelect = document.getElementById("painMatrix");
+      const summaryEl = document.getElementById("painMatrixSummary");
+      const legacyValue = matrixSeed.matrix && !matrixSeed.matrixKey ? matrixSeed.matrix : "";
+      const syncPainMatrixDetailOptions = (preserveCurrent = false) => {
+        const categoryKey = (categorySelect?.value || "").toString();
+        const nextSelected = preserveCurrent ? (matrixSelect?.value || "") : "";
+        if (matrixSelect) {
+          matrixSelect.innerHTML = painMatrixDetailOptions(categoryKey, nextSelected, legacyValue);
+          if (!preserveCurrent && matrixSelect.options.length > 0) matrixSelect.value = "";
+        }
+        if (summaryEl) {
+          summaryEl.textContent = painMatrixSummary(categoryKey, matrixSelect?.value || "", legacyValue);
+        }
+      };
+
+      categorySelect?.addEventListener("change", () => syncPainMatrixDetailOptions(false));
+      matrixSelect?.addEventListener("change", () => {
+        if (summaryEl) summaryEl.textContent = painMatrixSummary(categorySelect?.value || "", matrixSelect.value || "", legacyValue);
+      });
+      syncPainMatrixDetailOptions(Boolean(matrixSeed.categoryKey && matrixSeed.matrixKey));
     }
 
     function openCauseModal(painId, causeId = "") {
