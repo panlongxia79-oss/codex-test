@@ -454,6 +454,27 @@
       font-size: 14px;
     }
 
+    .select-shell {
+      position: relative;
+    }
+
+    .select-shell::after {
+      content: "▾";
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gold);
+      font-size: 14px;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .select-shell select {
+      padding-right: 40px;
+      cursor: pointer;
+    }
+
     input:focus,
     select:focus,
     textarea:focus {
@@ -12399,7 +12420,9 @@ with check (true);`;
             </div>
             <div class="span-2">
               <label class="fl" for="painMatrix">矩陣定位</label>
-              <select id="painMatrix" name="matrix">${painMatrixOptions(pain?.matrix || "客戶 · 熟客矩陣（滿意高 × 回訪低）")}</select>
+              <div class="select-shell">
+                <select id="painMatrix" name="matrix">${painMatrixOptions(pain?.matrix || "客戶 · 熟客矩陣（滿意高 × 回訪低）")}</select>
+              </div>
             </div>
           </div>
         `,
