@@ -475,6 +475,16 @@
       cursor: pointer;
     }
 
+    .select-shell.select-shell-prominent::before {
+      content: "點選展開";
+      position: absolute;
+      right: 38px;
+      top: -24px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--gold);
+    }
     input:focus,
     select:focus,
     textarea:focus {
@@ -7260,7 +7270,28 @@ with check (true);`;
       frontQscEnvironmentScore: { label: "環境檢核評分", format: "decimal1", step: "0.1" },
       frontQscAppearanceScore: { label: "儀態檢核評分", format: "decimal1", step: "0.1" },
       frontQscGoalScore: { label: "今日目標達成率", format: "decimal1", step: "0.1" },
-      backQsc: { label: "內場 QSC", format: "integer", step: "1" },
+      backQsc: { label: "內場 QSC", format: "decimal1", step: "0.1" },
+      backQscPrepScore: { label: "備料到位", format: "decimal1", step: "0.1" },
+      backQscExecutionScore: { label: "出餐穩定", format: "decimal1", step: "0.1" },
+      backQscQualityScore: { label: "品質一致", format: "decimal1", step: "0.1" },
+      backQscSanitationScore: { label: "清潔衛生", format: "decimal1", step: "0.1" },
+      backQscSafetyScore: { label: "食安控管", format: "decimal1", step: "0.1" },
+      backQscSopScore: { label: "SOP 抽檢", format: "decimal1", step: "0.1" },
+      backComplaintCount: { label: "餐點客訴", format: "integer", step: "1" },
+      backReturnCount: { label: "今日退餐數", format: "integer", step: "1" },
+      backForeignMatterCount: { label: "出現異物次數", format: "integer", step: "1" },
+      backUnavailableCount: { label: "未供應餐點數", format: "integer", step: "1" },
+      backDelayCount: { label: "遲餐數", format: "integer", step: "1" },
+      backMistakeCount: { label: "餐點失誤次數", format: "integer", step: "1" },
+      backSoupTasteCount: { label: "濃湯試喝次數", format: "integer", step: "1" },
+      backProcessCheckCount: { label: "製餐流程確認次數", format: "integer", step: "1" },
+      backSauceTasteCount: { label: "醬料試吃次數", format: "integer", step: "1" },
+      backPrepInspectCount: { label: "備料規格巡檢次數", format: "integer", step: "1" },
+      backPlateCheckCount: { label: "擺盤出餐巡檢次數", format: "integer", step: "1" },
+      backAttendanceRate: { label: "出勤到崗率", format: "decimal1", step: "0.1" },
+      backEnvironmentScore: { label: "環境檢核評分", format: "decimal1", step: "0.1" },
+      backPrepCompletionRate: { label: "備料達成率", format: "decimal1", step: "0.1" },
+      backGoalCompletionRate: { label: "今日目標達成率", format: "decimal1", step: "0.1" },
       laborCost: { label: "人事成本", format: "currency", step: "1" },
       foodCost: { label: "物料成本", format: "currency", step: "1" },
       complaintCount: { label: "客訴數", format: "integer", step: "1" },
@@ -7311,6 +7342,45 @@ with check (true);`;
     const FRONT_QSC_DETAIL_META = [
       { key: "complaintContent", label: "客訴內容", placeholder: "" }
     ];
+    const BACK_QSC_METRICS = [
+      { key: "backQscPrepScore", label: "備料到位", short: "備料", color: "#c3923d", decimals: 1, hint: "備料達成率搭配備料巡檢完成度。" },
+      { key: "backQscExecutionScore", label: "出餐穩定", short: "出餐", color: "#8c774f", decimals: 1, hint: "遲餐、未供應與製程確認一起換算。" },
+      { key: "backQscQualityScore", label: "品質一致", short: "品質", color: "#9d6c44", decimals: 1, hint: "返工、失誤、客訴與擺盤巡檢一起看。" },
+      { key: "backQscSanitationScore", label: "清潔衛生", short: "衛生", color: "#6f8452", decimals: 1, hint: "直接吃環境檢核評分。" },
+      { key: "backQscSafetyScore", label: "食安控管", short: "食安", color: "#8c4e43", decimals: 1, hint: "異物風險搭配濃湯試喝一起看。" },
+      { key: "backQscSopScore", label: "SOP 抽檢", short: "SOP", color: "#7b6f5e", decimals: 1, hint: "準時到崗與當班目標完成度。" }
+    ];
+    const BACK_QSC_EVENT_FIELDS = [
+      { key: "backComplaintCount", label: "餐點客訴", short: "客訴", min: 0, max: 20, step: "1", scoreMode: "penalty", hint: "含 Google 或現場需處理反映。", scoreHint: "0 件 = 100，1 件 = 60，2 件以上 = 0" },
+      { key: "backReturnCount", label: "今日退餐數", short: "退餐", min: 0, max: 50, step: "1", scoreMode: "penalty", hint: "客人退回或菜口退回都算。", scoreHint: "< 3 = 100，< 5 = 75，< 10 = 60，>= 10 = 0" },
+      { key: "backForeignMatterCount", label: "出現異物次數", short: "異物", min: 0, max: 10, step: "1", scoreMode: "penalty", hint: "自己攔下也要記。", scoreHint: "0 次 = 100，>= 1 次 = 0" },
+      { key: "backUnavailableCount", label: "未供應餐點數", short: "未供應", min: 0, max: 20, step: "1", scoreMode: "penalty", hint: "缺貨品項數，不算人次。", scoreHint: "< 2 = 100，< 4 = 60，>= 4 = 0" },
+      { key: "backDelayCount", label: "遲餐數", short: "遲餐", min: 0, max: 50, step: "1", scoreMode: "penalty", hint: "超標準時間道數，壓餐不算。", scoreHint: "< 5 = 100，< 10 = 75，< 15 = 60，>= 15 = 0" },
+      { key: "backMistakeCount", label: "餐點失誤次數", short: "失誤", min: 0, max: 30, step: "1", scoreMode: "penalty", hint: "製作端出錯含攔截修正。", scoreHint: "< 3 = 100，< 6 = 80，< 9 = 60，>= 9 = 0" }
+    ];
+    const BACK_QSC_CHECK_FIELDS = [
+      { key: "backSoupTasteCount", label: "濃湯試喝次數", short: "試喝", min: 0, max: 12, step: "1", scoreMode: "target", target: 3, hint: "親自試喝 1 次 = +1。", scoreHint: "滿分基準 3 次" },
+      { key: "backProcessCheckCount", label: "製餐流程確認次數", short: "製程", min: 0, max: 20, step: "1", scoreMode: "target", target: 6, hint: "完整看 1 道製作流程 = +1。", scoreHint: "滿分基準 6 次" },
+      { key: "backSauceTasteCount", label: "醬料試吃次數", short: "醬料", min: 0, max: 20, step: "1", scoreMode: "target", target: 6, hint: "試 1 種醬 = +1。", scoreHint: "滿分基準 6 次" },
+      { key: "backPrepInspectCount", label: "備料規格巡檢次數", short: "巡檢", min: 0, max: 20, step: "1", scoreMode: "target", target: 6, hint: "抽檢 1 項備料 = +1。", scoreHint: "滿分基準 6 項" },
+      { key: "backPlateCheckCount", label: "擺盤出餐巡檢次數", short: "擺盤", min: 0, max: 30, step: "1", scoreMode: "target", target: 12, hint: "菜口檢查 1 道 = +1。", scoreHint: "滿分基準 12 道" }
+    ];
+    const BACK_QSC_RATE_FIELDS = [
+      { key: "backAttendanceRate", label: "出勤到崗率", short: "到崗", min: 0, max: 100, step: "0.1", scoreMode: "rate", hint: "準時到 ÷ 應到 × 100。", scoreHint: "直接吃百分比" },
+      { key: "backEnvironmentScore", label: "環境檢核評分", short: "環境", min: 0, max: 100, step: "0.1", scoreMode: "rate", hint: "完成項目 ÷ 總項目 × 100。", scoreHint: "直接吃百分比" },
+      { key: "backPrepCompletionRate", label: "備料達成率", short: "備料率", min: 0, max: 100, step: "0.1", scoreMode: "rate", hint: "已備項 ÷ 應備項 × 100。", scoreHint: "直接吃百分比" },
+      { key: "backGoalCompletionRate", label: "今日目標達成率", short: "目標", min: 0, max: 100, step: "0.1", scoreMode: "rate", hint: "廚房重點目標 3-5 項完成率。", scoreHint: "直接吃百分比" }
+    ];
+    const BACK_QSC_INPUT_FIELDS = [...BACK_QSC_EVENT_FIELDS, ...BACK_QSC_CHECK_FIELDS, ...BACK_QSC_RATE_FIELDS];
+    const BACK_QSC_INPUT_FIELD_MAP = Object.fromEntries(BACK_QSC_INPUT_FIELDS.map((item) => [item.key, item]));
+    const BACK_QSC_DETAIL_META = [
+      { key: "backPrepChecklist", label: "備料檢核與缺口", placeholder: "例如：17:30 前主力品項備料補齊；20:10 舒芙蕾原料不足已補料。" },
+      { key: "backSanitationChecklist", label: "清潔 / 食安檢核", placeholder: "例如：冷藏溫度正常、砧板分色有做到、炸台收班完成。" },
+      { key: "backSopAuditChecklist", label: "SOP 抽檢與修正", placeholder: "例如：炸台起鍋節奏偏慢，已當班重講並再抽一次。" },
+      { key: "backIssueContent", label: "異常事件說明", placeholder: "例如：19:20 牛排斷料 12 分鐘，現場改單並補料。" },
+      { key: "backManagerAction", label: "當班修正 / 回報店長", placeholder: "例如：已立即補料、重排站位、同步回報店長。" }
+    ];
+    const BACK_QSC_ISSUE_ALERT_THRESHOLD = 2;
     const FRONT_QSC_ORDER_FIELDS = [
       { key: "orderTotalCount", label: "總單數" },
       { key: "orderValidCount", label: "有效單數" }
@@ -7381,7 +7451,7 @@ with check (true);`;
       { id: "target", label: "目標設定", description: "目標值也是一筆日常設定紀錄。當月摘要只吃最新版本，不直接手改月卡。", fields: ["targetRevenue"] },
       { id: "pos", label: "POS / 日營運", description: "每天或每批次把營收、客單與來客帶進來，月摘要會自動累積。", fields: ["actualRevenue", "avgTicket", "totalCustomers"] },
       { id: "crm", label: "CRM / 客群結構", description: "新客、熟客應該跟著每日會員回報進來，系統再往上堆月度結果。", fields: ["newCustomers", "returningCustomers"] },
-      { id: "qsc", label: "QSC / 稽核紀錄", description: "QSC 是每日或每次稽核的紀錄，月摘要看平均，不是手填一個月分數。", fields: [...FRONT_QSC_FIELDS, "backQsc"] },
+      { id: "qsc", label: "QSC / 稽核紀錄", description: "QSC 是每日或每次稽核的紀錄，月摘要看平均，不是手填一個月分數。", fields: [...FRONT_QSC_FIELDS, "backQsc", ...BACK_QSC_METRICS.map((item) => item.key), ...BACK_QSC_INPUT_FIELDS.map((item) => item.key)] },
       { id: "finance", label: "財務 / 成本", description: "成本可以每天累加，也可以在結帳那天補一筆；月摘要一樣從底層累積。", fields: ["laborCost", "foodCost"] },
       { id: "service", label: "服務 / 客訴", description: "客訴數應該跟著日常服務紀錄長上來，不是月底回想後一次補。", fields: ["complaintCount"] },
       { id: "google", label: "Google 商家", description: "Google 評分與評論數屬於快照資料，當月摘要採最新那筆。", fields: ["googleRating", "googleReviewCount"] }
@@ -7449,7 +7519,7 @@ with check (true);`;
         title: "內場QSC",
         icon: "◫",
         kicker: "back qsc",
-        description: "內場 QSC 跟外場拆開，先保留入口，下一輪再接稽核細項。",
+        description: "內場 QSC 先填原始 15 欄，系統再自動換算六個核心分數與總分。",
         sourceTypes: ["qsc"],
         preferredSourceType: "qsc",
         fields: ["backQsc"]
@@ -9428,9 +9498,42 @@ with check (true);`;
       };
     }
 
+    function normalizeBackQscSource(source) {
+      if (source.sourceType !== "qsc") return source;
+      const details = { ...(source.details || {}) };
+      const values = { ...(source.values || {}) };
+      const rawValuesFromDetails = backQscRawValuesFromDetails(details);
+      Object.entries(rawValuesFromDetails).forEach(([key, value]) => {
+        if (values[key] === undefined || values[key] === null || values[key] === "") {
+          values[key] = value;
+        }
+        delete details[key];
+      });
+      if (backQscHasRawInput(values)) {
+        const derivedValues = backQscDerivedMetricValues(values);
+        BACK_QSC_METRICS.forEach((item) => {
+          const score = derivedValues[item.key];
+          if (score === null || score === undefined) {
+            delete values[item.key];
+            return;
+          }
+          values[item.key] = Number(score.toFixed(1));
+        });
+      }
+      const totalScore = backQscTotalScore(values);
+      if (totalScore !== null) {
+        values.backQsc = Number(totalScore.toFixed(1));
+      }
+      return {
+        ...source,
+        values,
+        details: sanitizeSourceDetails(details)
+      };
+    }
+
     function normalizeStoreSourceRecords(next) {
       if (Array.isArray(next.storeSourceRecords) && next.storeSourceRecords.length) {
-        return next.storeSourceRecords.map((source) => normalizeFrontQscSource({
+        return next.storeSourceRecords.map((source) => normalizeBackQscSource(normalizeFrontQscSource({
           id: source.id || `SRC-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
           storeId: source.storeId || "",
           reportDate: normalizeReportDate(source.reportDate, source.ts, source.period),
@@ -9441,7 +9544,7 @@ with check (true);`;
           values: sanitizeSourceValues(source.values || {}, source.sourceType),
           details: sanitizeSourceDetails(source.details || {}),
           ts: numericValue(source.ts) || Date.now()
-        })).filter((source) => source.storeId && source.period && Object.keys(source.values).length);
+        }))).filter((source) => source.storeId && source.period && Object.keys(source.values).length);
       }
 
       const legacyRecords = Array.isArray(next.storeRecords) && next.storeRecords.length
@@ -10018,6 +10121,53 @@ with check (true);`;
       };
     }
 
+    function normalizeObjectives(objectives) {
+      const source = Array.isArray(objectives) ? objectives : structuredClone(BASE.objectives);
+      return source.map((objective, objectiveIndex) => ({
+        id: objective.id || `OBJ-${String(objectiveIndex + 1).padStart(2, "0")}`,
+        title: (objective.title || objective.name || `目標 ${objectiveIndex + 1}`).toString().trim(),
+        quarter: (objective.quarter || BASE.objectives[0]?.quarter || "").toString().trim(),
+        ownerId: (objective.ownerId || objective.owner_id || "").toString().trim(),
+        krs: (Array.isArray(objective.krs) ? objective.krs : Array.isArray(objective.keyResults) ? objective.keyResults : [])
+          .map((kr, krIndex) => ({
+            id: kr.id || `KR-${String(objectiveIndex + 1).padStart(2, "0")}-${String(krIndex + 1).padStart(2, "0")}`,
+            title: (kr.title || kr.name || `KR ${krIndex + 1}`).toString().trim(),
+            metricId: (kr.metricId || kr.linkedMetricId || kr.metricID || "").toString().trim()
+          }))
+          .filter((kr) => kr.title)
+      })).filter((objective) => objective.title);
+    }
+
+    function normalizePains(pains) {
+      const source = Array.isArray(pains) ? pains : structuredClone(BASE.pains);
+      return source.map((pain, painIndex) => ({
+        id: pain.id || `P-${String(painIndex + 1).padStart(2, "0")}`,
+        title: (pain.title || pain.name || `痛點 ${painIndex + 1}`).toString().trim(),
+        matrixCategory: (pain.matrixCategory || "").toString().trim(),
+        matrixKey: (pain.matrixKey || "").toString().trim(),
+        matrixCellKey: (pain.matrixCellKey || "").toString().trim(),
+        matrix: (pain.matrix || "").toString().trim(),
+        causes: (Array.isArray(pain?.causes) ? pain.causes : []).map((cause, causeIndex) => ({
+          id: cause.id || `C-${String(painIndex + 1).padStart(2, "0")}-${String(causeIndex + 1).padStart(2, "0")}`,
+          name: (cause.name || cause.title || `成因 ${causeIndex + 1}`).toString().trim(),
+          metrics: (Array.isArray(cause?.metrics) ? cause.metrics : []).map((metric, metricIndex) => ({
+            id: metric.id || `M-${String(painIndex + 1).padStart(2, "0")}-${String(causeIndex + 1).padStart(2, "0")}-${String(metricIndex + 1).padStart(2, "0")}`,
+            name: (metric.name || metric.title || `指標 ${metricIndex + 1}`).toString().trim(),
+            layer: (metric.layer || "lead").toString().trim(),
+            formula: (metric.formula || "").toString().trim(),
+            source: (metric.source || "Google Sheet").toString().trim(),
+            level: (metric.level || "L1").toString().trim(),
+            ownerId: (metric.ownerId || metric.owner_id || "").toString().trim(),
+            freq: (metric.freq || "m").toString().trim(),
+            target: numericValue(metric.target),
+            dir: (metric.dir || "high").toString().trim(),
+            unit: (metric.unit || "").toString().trim(),
+            weight: numericValue(metric.weight)
+          })).filter((metric) => metric.name)
+        })).filter((cause) => cause.name)
+      })).filter((pain) => pain.title);
+    }
+
     function normalizeState(data) {
       const next = data && typeof data === "object" ? data : structuredClone(BASE);
       next.owners = Array.isArray(next.owners) ? next.owners.map((owner) => {
@@ -10040,8 +10190,8 @@ with check (true);`;
         return merged;
       }) : structuredClone(BASE.owners);
       next.stores = Array.isArray(next.stores) ? next.stores : structuredClone(BASE.stores);
-      next.objectives = Array.isArray(next.objectives) ? next.objectives : structuredClone(BASE.objectives);
-      next.pains = Array.isArray(next.pains) ? next.pains : structuredClone(BASE.pains);
+      next.objectives = normalizeObjectives(next.objectives);
+      next.pains = normalizePains(next.pains);
       next.entries = Array.isArray(next.entries) ? next.entries : structuredClone(BASE.entries);
       next.storeRecords = Array.isArray(next.storeRecords) ? next.storeRecords : structuredClone(BASE.storeRecords);
       next.storeSourceRecords = normalizeStoreSourceRecords(next);
@@ -10463,6 +10613,7 @@ with check (true);`;
       selectedPersonnelMetric: "laborRatio",
       selectedCustomerMetric: "revenue",
       selectedFrontQscMetric: "frontQsc",
+      selectedBackQscMetric: "backQsc",
       selectedCustomerRecordId: "",
       selectedMaterialVendorId: "",
       selectedMaterialMetric: "monthSpend"
@@ -10690,9 +10841,9 @@ with check (true);`;
     }
 
     function allMetrics() {
-      return state.pains.flatMap((pain) =>
-        pain.causes.flatMap((cause) =>
-          cause.metrics.map((metric) => ({ ...metric, pain, cause }))
+      return (Array.isArray(state.pains) ? state.pains : []).flatMap((pain) =>
+        (Array.isArray(pain?.causes) ? pain.causes : []).flatMap((cause) =>
+          (Array.isArray(cause?.metrics) ? cause.metrics : []).map((metric) => ({ ...metric, pain, cause }))
         )
       );
     }
@@ -11469,6 +11620,192 @@ with check (true);`;
         meta: frontQscMetricMeta(metricKey),
         formatPoint: (value) => formatFrontQscPointLabel(metricKey, value),
         emptyDescription: "先新增一筆外場QSC，這裡才會開始畫線。"
+      });
+    }
+
+    function backQscSourceRecordsFor(storeId = "", period = entryCurrentPeriod()) {
+      const metricKeys = ["backQsc", ...BACK_QSC_METRICS.map((item) => item.key)];
+      return allStoreSourceRecords()
+        .filter((source) => {
+          if (source.sourceType !== "qsc") return false;
+          if (storeId && source.storeId !== storeId) return false;
+          if (period && source.period !== period) return false;
+          return metricKeys.some((key) => source.values && source.values[key] !== undefined && source.values[key] !== null && source.values[key] !== "");
+        })
+        .slice()
+        .sort((a, b) => b.reportDate.localeCompare(a.reportDate) || numericValue(b.ts) - numericValue(a.ts));
+    }
+
+    function backQscAverage(records, key) {
+      const values = records
+        .filter((record) => record.values && record.values[key] !== undefined && record.values[key] !== null && record.values[key] !== "")
+        .map((record) => numericValue(record.values?.[key]))
+        .filter((value) => Number.isFinite(value));
+      return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
+    }
+
+    function backQscIssueCountFromSource(source = {}) {
+      const count = frontQscDetailNumber(source.details || {}, "backIssueCaseCount");
+      return count === null ? 0 : count;
+    }
+
+    function backQscRawValue(field, rawValue) {
+      if (rawValue === null || rawValue === undefined || rawValue === "") return null;
+      return clampNumber(numericValue(rawValue), field.min, field.max);
+    }
+
+    function backQscRawValuesFromDetails(details = {}) {
+      return Object.fromEntries(BACK_QSC_INPUT_FIELDS.map((field) => {
+        const value = backQscRawValue(field, details?.[field.key]);
+        return value === null ? null : [field.key, value];
+      }).filter(Boolean));
+    }
+
+    function averageNullableValues(values = []) {
+      const normalized = values.filter((value) => Number.isFinite(value));
+      if (!normalized.length) return null;
+      return normalized.reduce((sum, value) => sum + value, 0) / normalized.length;
+    }
+
+    function backQscHasRawInput(values = {}) {
+      return BACK_QSC_INPUT_FIELDS.some((item) => values?.[item.key] !== undefined && values?.[item.key] !== null && values?.[item.key] !== "");
+    }
+
+    function backQscFieldScore(field, values = {}) {
+      const raw = values?.[field.key];
+      if (raw === null || raw === undefined || raw === "") return null;
+      const numeric = Math.max(0, numericValue(raw));
+      switch (field.key) {
+        case "backComplaintCount":
+          return numeric === 0 ? 100 : numeric === 1 ? 60 : 0;
+        case "backReturnCount":
+          return numeric >= 10 ? 0 : numeric < 3 ? 100 : numeric < 5 ? 75 : 60;
+        case "backForeignMatterCount":
+          return numeric < 1 ? 100 : 0;
+        case "backUnavailableCount":
+          return numeric < 2 ? 100 : numeric < 4 ? 60 : 0;
+        case "backDelayCount":
+          return numeric < 5 ? 100 : numeric < 10 ? 75 : numeric < 15 ? 60 : 0;
+        case "backMistakeCount":
+          return numeric < 3 ? 100 : numeric < 6 ? 80 : numeric < 9 ? 60 : 0;
+        default:
+          if (field.scoreMode === "target") {
+            const target = numericValue(field.target);
+            if (!target) return null;
+            return clampNumber((numeric / target) * 100, 0, 100);
+          }
+          return clampNumber(numeric, 0, 100);
+      }
+    }
+
+    function backQscDerivedMetricValues(values = {}) {
+      const scoreOf = (key) => {
+        const field = BACK_QSC_INPUT_FIELD_MAP[key];
+        return field ? backQscFieldScore(field, values) : null;
+      };
+      return {
+        backQscPrepScore: averageNullableValues([scoreOf("backPrepCompletionRate"), scoreOf("backPrepInspectCount")]),
+        backQscExecutionScore: averageNullableValues([scoreOf("backDelayCount"), scoreOf("backUnavailableCount"), scoreOf("backProcessCheckCount")]),
+        backQscQualityScore: averageNullableValues([scoreOf("backReturnCount"), scoreOf("backMistakeCount"), scoreOf("backComplaintCount"), scoreOf("backSauceTasteCount"), scoreOf("backPlateCheckCount")]),
+        backQscSanitationScore: averageNullableValues([scoreOf("backEnvironmentScore")]),
+        backQscSafetyScore: averageNullableValues([scoreOf("backForeignMatterCount"), scoreOf("backSoupTasteCount")]),
+        backQscSopScore: averageNullableValues([scoreOf("backAttendanceRate"), scoreOf("backGoalCompletionRate")])
+      };
+    }
+
+    function backQscLegacyMetricValues(values = {}) {
+      return Object.fromEntries(BACK_QSC_METRICS.map((item) => {
+        const raw = values?.[item.key];
+        if (raw === null || raw === undefined || raw === "") return [item.key, null];
+        return [item.key, clampNumber(numericValue(raw), 0, 100)];
+      }));
+    }
+
+    function backQscNormalizedItemScores(values = {}) {
+      return {
+        backComplaintCount: backQscFieldScore(BACK_QSC_INPUT_FIELD_MAP.backComplaintCount, values),
+        backReturnCount: backQscFieldScore(BACK_QSC_INPUT_FIELD_MAP.backReturnCount, values),
+        backForeignMatterCount: backQscFieldScore(BACK_QSC_INPUT_FIELD_MAP.backForeignMatterCount, values),
+        backUnavailableCount: backQscFieldScore(BACK_QSC_INPUT_FIELD_MAP.backUnavailableCount, values),
+        backDelayCount: backQscFieldScore(BACK_QSC_INPUT_FIELD_MAP.backDelayCount, values),
+        backMistakeCount: backQscFieldScore(BACK_QSC_INPUT_FIELD_MAP.backMistakeCount, values),
+        backSoupTasteCount: backQscFieldScore(BACK_QSC_INPUT_FIELD_MAP.backSoupTasteCount, values),
+        backProcessCheckCount: backQscFieldScore(BACK_QSC_INPUT_FIELD_MAP.backProcessCheckCount, values),
+        backSauceTasteCount: backQscFieldScore(BACK_QSC_INPUT_FIELD_MAP.backSauceTasteCount, values),
+        backPrepInspectCount: backQscFieldScore(BACK_QSC_INPUT_FIELD_MAP.backPrepInspectCount, values),
+        backPlateCheckCount: backQscFieldScore(BACK_QSC_INPUT_FIELD_MAP.backPlateCheckCount, values),
+        backAttendanceRate: backQscFieldScore(BACK_QSC_INPUT_FIELD_MAP.backAttendanceRate, values),
+        backEnvironmentScore: backQscFieldScore(BACK_QSC_INPUT_FIELD_MAP.backEnvironmentScore, values),
+        backPrepCompletionRate: backQscFieldScore(BACK_QSC_INPUT_FIELD_MAP.backPrepCompletionRate, values),
+        backGoalCompletionRate: backQscFieldScore(BACK_QSC_INPUT_FIELD_MAP.backGoalCompletionRate, values)
+      };
+    }
+
+    function backQscTotalScore(values = {}) {
+      const scores = (backQscHasRawInput(values) ? Object.values(backQscNormalizedItemScores(values)) : Object.values(backQscLegacyMetricValues(values)))
+        .filter((value) => Number.isFinite(value));
+      return scores.length ? scores.reduce((sum, value) => sum + value, 0) / scores.length : null;
+    }
+
+    function backQscSummary(storeId = "", period = entryCurrentPeriod()) {
+      const records = backQscSourceRecordsFor(storeId, period);
+      return {
+        records,
+        latest: records[0] || null,
+        avgBackQsc: backQscAverage(records, "backQsc"),
+        averages: Object.fromEntries(BACK_QSC_METRICS.map((item) => [item.key, backQscAverage(records, item.key)]))
+      };
+    }
+
+    const BACK_QSC_OVERVIEW_META = {
+      backQsc: { label: "平均內場QSC", short: "內場QSC", color: "#c3923d", decimals: 1 },
+      ...Object.fromEntries(BACK_QSC_METRICS.map((item) => [item.key, {
+        label: `平均${item.label}`,
+        short: item.short,
+        color: item.color,
+        decimals: item.decimals
+      }]))
+    };
+
+    function backQscMetricMeta(metricKey = "backQsc") {
+      return BACK_QSC_OVERVIEW_META[metricKey] || BACK_QSC_OVERVIEW_META.backQsc;
+    }
+
+    function setBackQscMetric(metricKey = "backQsc") {
+      entryUI.selectedBackQscMetric = backQscMetricMeta(metricKey) ? metricKey : "backQsc";
+      renderEntry();
+      requestAnimationFrame(() => {
+        document.getElementById("backQscTrendCard")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
+    }
+
+    function backQscMetricValue(summary, metricKey = "backQsc") {
+      if (metricKey === "backQsc") return summary.avgBackQsc;
+      return summary.averages?.[metricKey] ?? null;
+    }
+
+    function formatBackQscMetricValue(metricKey, value) {
+      if (value === null || value === undefined || !Number.isFinite(value)) return "—";
+      const meta = backQscMetricMeta(metricKey);
+      return formatDecimal(value, meta.decimals ?? 1);
+    }
+
+    function backQscMetricSeries(records, metricKey = "backQsc") {
+      return records
+        .filter((record) => record.values && record.values[metricKey] !== undefined && record.values[metricKey] !== null && record.values[metricKey] !== "")
+        .slice()
+        .sort((a, b) => a.reportDate.localeCompare(b.reportDate) || numericValue(a.ts) - numericValue(b.ts))
+        .map((record) => ({
+          label: record.reportDate.slice(5),
+          raw: numericValue(record.values?.[metricKey])
+        }));
+    }
+
+    function renderBackQscTrendChart(records, metricKey = "backQsc") {
+      return renderEntryTrendChart(backQscMetricSeries(records, metricKey), {
+        meta: backQscMetricMeta(metricKey),
+        formatPoint: (value) => formatBackQscMetricValue(metricKey, value),
+        emptyDescription: "先新增一筆內場QSC，這裡才會開始畫線。"
       });
     }
 
@@ -12343,12 +12680,11 @@ with check (true);`;
       const lookup = new Map();
       PAIN_MATRIX_GROUPS.forEach((group) => {
         group.options.forEach((option) => {
-          const values = [
+          [
             `${group.label} · ${option.label}`,
             option.label,
             ...(option.aliases || [])
-          ];
-          values.forEach((value) => {
+          ].forEach((value) => {
             const normalized = (value || "").toString().trim();
             if (normalized) lookup.set(normalized, { categoryKey: group.key, matrixKey: option.key, matrixCellKey: option.defaultCellKey || "ll" });
           });
@@ -12459,6 +12795,109 @@ with check (true);`;
       return fallbackValue ? `既有值｜${fallbackValue}` : "先選面向，再選矩陣種類，最後選具體矩陣";
     }
 
+    function inferMetricLinkSelection(metricId = "") {
+      const metric = allMetrics().find((item) => item.id === metricId);
+      const matrixSeed = inferPainMatrixSelection(metric?.pain || {});
+      return {
+        categoryKey: matrixSeed.categoryKey,
+        matrixKey: matrixSeed.matrixKey,
+        matrixCellKey: matrixSeed.matrixCellKey,
+        metricId: metric?.id || metricId || ""
+      };
+    }
+
+    function metricsForLinkSelection(categoryKey = "", matrixKey = "", matrixCellKey = "") {
+      return allMetrics().filter((metric) => {
+        const pain = metric.pain || {};
+        if (categoryKey && pain.matrixCategory !== categoryKey) return false;
+        if (matrixKey && pain.matrixKey !== matrixKey) return false;
+        if (matrixCellKey && pain.matrixCellKey !== matrixCellKey) return false;
+        return true;
+      });
+    }
+
+    function krMetricCategoryOptions(selected = "") {
+      const counts = new Map();
+      allMetrics().forEach((metric) => {
+        const key = (metric.pain?.matrixCategory || "").toString().trim();
+        if (!key) return;
+        counts.set(key, (counts.get(key) || 0) + 1);
+      });
+      const options = [`<option value="">先選面向</option>`];
+      PAIN_MATRIX_GROUPS
+        .filter((group) => counts.has(group.key))
+        .forEach((group) => {
+          options.push(`<option value="${group.key}" ${group.key === selected ? "selected" : ""}>${group.label}｜${counts.get(group.key)} 個指標</option>`);
+        });
+      return options.join("");
+    }
+
+    function krMetricTypeOptions(categoryKey = "", selected = "") {
+      const group = PAIN_MATRIX_GROUP_MAP[categoryKey];
+      if (!group) return `<option value="">再選矩陣種類</option>`;
+      const metrics = metricsForLinkSelection(categoryKey);
+      const counts = new Map();
+      metrics.forEach((metric) => {
+        const key = (metric.pain?.matrixKey || "").toString().trim();
+        if (!key) return;
+        counts.set(key, (counts.get(key) || 0) + 1);
+      });
+      const options = [`<option value="">再選矩陣種類</option>`];
+      group.options
+        .filter((option) => counts.has(option.key))
+        .forEach((option) => {
+          options.push(`<option value="${option.key}" ${option.key === selected ? "selected" : ""}>${option.label}｜${counts.get(option.key)} 個指標</option>`);
+        });
+      return options.join("");
+    }
+
+    function krMetricCellOptions(categoryKey = "", matrixKey = "", selected = "") {
+      const option = PAIN_MATRIX_OPTION_MAP[matrixKey];
+      if (!option || option.categoryKey !== categoryKey) return `<option value="">再選具體矩陣</option>`;
+      const metrics = metricsForLinkSelection(categoryKey, matrixKey);
+      const counts = new Map();
+      metrics.forEach((metric) => {
+        const key = (metric.pain?.matrixCellKey || "").toString().trim();
+        if (!key) return;
+        counts.set(key, (counts.get(key) || 0) + 1);
+      });
+      const options = [`<option value="">再選具體矩陣</option>`];
+      option.cells
+        .filter((cell) => counts.has(cell.key))
+        .forEach((cell) => {
+          options.push(`<option value="${cell.key}" ${cell.key === selected ? "selected" : ""}>${cell.label}｜${counts.get(cell.key)} 個指標</option>`);
+        });
+      return options.join("");
+    }
+
+    function krMetricOptions(categoryKey = "", matrixKey = "", matrixCellKey = "", selected = "") {
+      const metrics = metricsForLinkSelection(categoryKey, matrixKey, matrixCellKey);
+      if (!categoryKey || !matrixKey || !matrixCellKey) return `<option value="">最後選連動指標</option>`;
+      const options = [`<option value="">最後選連動指標</option>`];
+      metrics
+        .sort((a, b) => a.name.localeCompare(b.name, "zh-Hant"))
+        .forEach((metric) => {
+          options.push(`<option value="${metric.id}" ${metric.id === selected ? "selected" : ""}>${escapeHTML(metric.name)}｜${escapeHTML(metric.cause?.name || "未分類成因")}</option>`);
+        });
+      if (selected && !metrics.some((metric) => metric.id === selected)) {
+        options.push(`<option value="${selected}" selected>既有連結｜${escapeHTML(selected)}</option>`);
+      }
+      return options.join("");
+    }
+
+    function krMetricSummary(categoryKey = "", matrixKey = "", matrixCellKey = "", metricId = "") {
+      const metric = allMetrics().find((item) => item.id === metricId);
+      if (metric) {
+        return `${painMatrixSummary(categoryKey, matrixKey, matrixCellKey)}｜成因：${metric.cause?.name || "未分類"}｜指標：${metric.name}`;
+      }
+      const filtered = metricsForLinkSelection(categoryKey, matrixKey, matrixCellKey);
+      if (categoryKey && matrixKey && matrixCellKey) {
+        return filtered.length
+          ? `${painMatrixSummary(categoryKey, matrixKey, matrixCellKey)}｜目前可選 ${filtered.length} 個指標`
+          : `${painMatrixSummary(categoryKey, matrixKey, matrixCellKey)}｜這格目前還沒有指標`;
+      }
+      return "先選面向、矩陣種類、具體矩陣，最後把 KR 綁到指標。";
+    }
     function closeModal() {
       const shell = document.getElementById("appModal");
       const form = document.getElementById("modalForm");
@@ -12551,6 +12990,8 @@ with check (true);`;
       const objective = state.objectives.find((item) => item.id === objectiveId);
       const kr = objective?.krs.find((item) => item.id === krId);
       if (!objective) return;
+      const seedMetricId = kr?.metricId || objective.krs[0]?.metricId || allMetrics()[0]?.id || "";
+      const metricSeed = inferMetricLinkSelection(seedMetricId);
       openModal({
         title: kr ? "編輯 KR" : "新增 KR",
         subtitle: `這個 KR 會掛在「${objective.title}」下面，數字承接要一次定清楚。`,
@@ -12562,9 +13003,30 @@ with check (true);`;
               <input id="krTitle" name="title" type="text" value="${escapeHTML(kr?.title || "")}" placeholder="例如：把回流轉換率拉到 18%">
             </div>
             <div class="span-2">
-              <label class="fl" for="krMetricId">連動指標</label>
-              <select id="krMetricId" name="metricId">${allMetrics().map((metric) => `<option value="${metric.id}" ${metric.id === (kr?.metricId || objective.krs[0]?.metricId || allMetrics()[0]?.id || "") ? "selected" : ""}>${escapeHTML(metric.id)}｜${escapeHTML(metric.name)}</option>`).join("")}</select>
+              <label class="fl" for="krMetricCategory">連動面向</label>
+              <div class="select-shell">
+                <select id="krMetricCategory" name="metricCategory">${krMetricCategoryOptions(metricSeed.categoryKey)}</select>
+              </div>
             </div>
+            <div class="span-2">
+              <label class="fl" for="krMetricType">矩陣種類</label>
+              <div class="select-shell">
+                <select id="krMetricType" name="metricMatrixKey">${krMetricTypeOptions(metricSeed.categoryKey, metricSeed.matrixKey)}</select>
+              </div>
+            </div>
+            <div class="span-2">
+              <label class="fl" for="krMetricCell">具體矩陣</label>
+              <div class="select-shell">
+                <select id="krMetricCell" name="metricMatrixCellKey">${krMetricCellOptions(metricSeed.categoryKey, metricSeed.matrixKey, metricSeed.matrixCellKey)}</select>
+              </div>
+            </div>
+            <div class="span-2">
+              <label class="fl" for="krMetricId">連動指標</label>
+              <div class="select-shell">
+                <select id="krMetricId" name="metricId">${krMetricOptions(metricSeed.categoryKey, metricSeed.matrixKey, metricSeed.matrixCellKey, seedMetricId)}</select>
+              </div>
+            </div>
+            <div class="span-2 modal-copy" id="krMetricSummary">${krMetricSummary(metricSeed.categoryKey, metricSeed.matrixKey, metricSeed.matrixCellKey, seedMetricId)}</div>
           </div>
         `,
         onSubmit(formData) {
@@ -12590,6 +13052,57 @@ with check (true);`;
           rerenderAll();
         }
       });
+
+      const categorySelect = document.getElementById("krMetricCategory");
+      const typeSelect = document.getElementById("krMetricType");
+      const cellSelect = document.getElementById("krMetricCell");
+      const metricSelect = document.getElementById("krMetricId");
+      const summaryEl = document.getElementById("krMetricSummary");
+      const syncKrMetricSummary = () => {
+        if (!summaryEl) return;
+        summaryEl.textContent = krMetricSummary(
+          categorySelect?.value || "",
+          typeSelect?.value || "",
+          cellSelect?.value || "",
+          metricSelect?.value || ""
+        );
+      };
+      const syncKrMetricSelect = (preserveCurrent = false) => {
+        const categoryKey = (categorySelect?.value || "").toString();
+        const matrixKey = (typeSelect?.value || "").toString();
+        const matrixCellKey = (cellSelect?.value || "").toString();
+        const nextSelected = preserveCurrent ? (metricSelect?.value || "") : "";
+        if (metricSelect) {
+          metricSelect.innerHTML = krMetricOptions(categoryKey, matrixKey, matrixCellKey, nextSelected);
+          if (!preserveCurrent && metricSelect.options.length > 0) metricSelect.value = "";
+        }
+        syncKrMetricSummary();
+      };
+      const syncKrMetricCellSelect = (preserveCurrent = false) => {
+        const categoryKey = (categorySelect?.value || "").toString();
+        const matrixKey = (typeSelect?.value || "").toString();
+        const nextSelected = preserveCurrent ? (cellSelect?.value || "") : "";
+        if (cellSelect) {
+          cellSelect.innerHTML = krMetricCellOptions(categoryKey, matrixKey, nextSelected);
+          if (!preserveCurrent && cellSelect.options.length > 0) cellSelect.value = "";
+        }
+        syncKrMetricSelect(preserveCurrent);
+      };
+      const syncKrMetricTypeSelect = (preserveCurrent = false) => {
+        const categoryKey = (categorySelect?.value || "").toString();
+        const nextSelected = preserveCurrent ? (typeSelect?.value || "") : "";
+        if (typeSelect) {
+          typeSelect.innerHTML = krMetricTypeOptions(categoryKey, nextSelected);
+          if (!preserveCurrent && typeSelect.options.length > 0) typeSelect.value = "";
+        }
+        syncKrMetricCellSelect(preserveCurrent);
+      };
+
+      categorySelect?.addEventListener("change", () => syncKrMetricTypeSelect(false));
+      typeSelect?.addEventListener("change", () => syncKrMetricCellSelect(false));
+      cellSelect?.addEventListener("change", () => syncKrMetricSelect(false));
+      metricSelect?.addEventListener("change", syncKrMetricSummary);
+      syncKrMetricTypeSelect(Boolean(metricSeed.categoryKey && metricSeed.matrixKey && metricSeed.matrixCellKey));
     }
 
     function openOwnerModal(ownerId = "", presetParentId = "") {
@@ -13775,7 +14288,11 @@ with check (true);`;
           return `<div class="kr-row">
             <div>
               <div class="kt">KR · ${escapeHTML(kr.title)}</div>
-              <div class="km">${metric ? `掛載指標：<b>${escapeHTML(metric.name)}</b> · 最新 ${latest ? formatValue(latest.value, metric.unit) : "–"} / 目標 ${metric.dir === "low" ? "≤" : "≥"} ${formatValue(metric.target, metric.unit)}` : "尚未掛載指標"}</div>
+              <div class="km">${metric
+                ? `掛載指標：<b>${escapeHTML(metric.name)}</b> · 最新 ${latest ? formatValue(latest.value, metric.unit) : "–"} / 目標 ${metric.dir === "low" ? "≤" : "≥"} ${formatValue(metric.target, metric.unit)}`
+                : kr.metricId
+                  ? `掛載指標已失聯｜${escapeHTML(kr.metricId)}，請重新綁定。`
+                  : "尚未掛載指標"}</div>
             </div>
             <div class="kr-prog">
               <div class="pbar"><i class="${pct !== null && pct >= 100 ? "good" : pct !== null && pct < 60 ? "bad" : ""}" style="width:${pct || 0}%"></i></div>
@@ -14173,6 +14690,10 @@ with check (true);`;
       }
       if (entryModule(entryUI.currentModuleId).id === "front-qsc") {
         openFrontQscRecordModal("", entryUI.selectedStoreId || state.stores[0]?.id || "");
+        return;
+      }
+      if (entryModule(entryUI.currentModuleId).id === "back-qsc") {
+        openBackQscRecordModal("", entryUI.selectedStoreId || state.stores[0]?.id || "");
         return;
       }
       toast("這一項下一輪再補。");
@@ -14828,6 +15349,186 @@ with check (true);`;
       `;
     }
 
+    function renderBackQscNotes(source) {
+      const detailCards = [];
+      const prepText = (source.details?.backPrepChecklist || "").toString().trim();
+      const sanitationText = (source.details?.backSanitationChecklist || "").toString().trim();
+      const sopText = (source.details?.backSopAuditChecklist || "").toString().trim();
+      const issueText = (source.details?.backIssueContent || "").toString().trim();
+      const managerAction = (source.details?.backManagerAction || "").toString().trim();
+      const issueCount = backQscIssueCountFromSource(source);
+
+      if (prepText) {
+        detailCards.push(`<div class="qsc-note-card">
+          <div class="lk">備料檢核與缺口</div>
+          <div class="qsc-note-body">${escapeHTML(prepText)}</div>
+        </div>`);
+      }
+      if (sanitationText) {
+        detailCards.push(`<div class="qsc-note-card">
+          <div class="lk">清潔 / 食安檢核</div>
+          <div class="qsc-note-body">${escapeHTML(sanitationText)}</div>
+        </div>`);
+      }
+      if (sopText) {
+        detailCards.push(`<div class="qsc-note-card">
+          <div class="lk">SOP 抽檢與修正</div>
+          <div class="qsc-note-body">${escapeHTML(sopText)}</div>
+        </div>`);
+      }
+      if (issueCount || issueText) {
+        detailCards.push(`<div class="qsc-note-card">
+          <div class="lk">異常事件</div>
+          <div class="qsc-note-body">${escapeHTML(`${issueCount} 件${issueCount >= BACK_QSC_ISSUE_ALERT_THRESHOLD ? "\n超過 1 件，需追蹤" : ""}${issueText ? `\n${issueText}` : ""}`)}</div>
+        </div>`);
+      }
+      if (managerAction) {
+        detailCards.push(`<div class="qsc-note-card">
+          <div class="lk">當班修正 / 回報店長</div>
+          <div class="qsc-note-body">${escapeHTML(managerAction)}</div>
+        </div>`);
+      }
+      const note = (source.note || "").toString().trim();
+      if (note) {
+        detailCards.push(`<div class="qsc-note-card">
+          <div class="lk">補充備註</div>
+          <div class="qsc-note-body">${escapeHTML(note)}</div>
+        </div>`);
+      }
+      return detailCards.length ? `<div class="qsc-note-grid">${detailCards.join("")}</div>` : "";
+    }
+
+    function formatBackQscRawFieldValue(field, rawValue) {
+      if (rawValue === null || rawValue === undefined || rawValue === "") return "—";
+      return field.scoreMode === "rate"
+        ? `${formatDecimal(rawValue, 1)}%`
+        : `${Math.round(numericValue(rawValue))}`;
+    }
+
+    function renderBackQscRawFieldCard(title, fields, source) {
+      const values = source?.values || {};
+      const activeFields = fields.filter((field) => values[field.key] !== undefined && values[field.key] !== null && values[field.key] !== "");
+      if (!activeFields.length) return "";
+      return `<div class="qsc-note-card">
+        <div class="lk">${title}</div>
+        <div class="qsc-note-body">${activeFields.map((field) => `${field.label}：${escapeHTML(formatBackQscRawFieldValue(field, values[field.key]))}`).join("\n")}</div>
+      </div>`;
+    }
+
+    function renderBackQscRawDetails(source) {
+      if (!backQscHasRawInput(source?.values || {})) {
+        return `<div class="qsc-note-grid"><div class="qsc-note-card">
+          <div class="lk">原始細項</div>
+          <div class="qsc-note-body">這筆是舊版六分項資料，沒有原始 15 欄細項。按右上角「編輯」補齊後，這裡就會顯示細項。</div>
+        </div></div>`;
+      }
+      const cards = [
+        renderBackQscRawFieldCard("異常扣分細項", BACK_QSC_EVENT_FIELDS, source),
+        renderBackQscRawFieldCard("過程檢核細項", BACK_QSC_CHECK_FIELDS, source),
+        renderBackQscRawFieldCard("百分比達成細項", BACK_QSC_RATE_FIELDS, source)
+      ].filter(Boolean);
+      return cards.length ? `<div class="qsc-note-grid">${cards.join("")}</div>` : "";
+    }
+
+    function renderBackQscModule(store, period) {
+      const summary = backQscSummary(store.id, period);
+      const activeMetric = entryUI.selectedBackQscMetric || "backQsc";
+      const overview = [
+        { key: "backQsc", label: "平均內場QSC", value: formatBackQscMetricValue("backQsc", summary.avgBackQsc) },
+        ...BACK_QSC_METRICS.map((item) => ({
+          key: item.key,
+          label: `平均${item.label}`,
+          value: formatBackQscMetricValue(item.key, summary.averages?.[item.key] ?? null)
+        }))
+      ];
+      const trendMeta = backQscMetricMeta(activeMetric);
+      const trendValue = formatBackQscMetricValue(activeMetric, backQscMetricValue(summary, activeMetric));
+      const recordCards = summary.records.map((source) => {
+        const creator = source.sourceName || "內場QSC";
+        return `<article class="qsc-record-card">
+          <div class="qsc-record-head">
+            <div>
+              <div class="entry-module-kicker">back qsc daily check</div>
+              <h4>${source.reportDate}</h4>
+              <div class="qsc-record-meta">
+                <span class="source-chip">${escapeHTML(creator)}</span>
+                <span class="source-chip">${escapeHTML(store.name)}</span>
+                <span class="source-chip">更新 ${new Date(source.ts).toLocaleString("zh-TW", { hour12: false })}</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+              <button class="btn ghost sm" type="button" onclick="openBackQscRecordModal('${source.id}')">編輯</button>
+              <button class="btn danger sm" type="button" onclick="deleteStoreSourceRecord('${source.id}')">刪除</button>
+            </div>
+          </div>
+          <div class="executive-metric-grid">
+            <div class="executive-metric-card">
+              <div class="lk">內場QSC總分</div>
+              <div class="lv">${formatBackQscMetricValue("backQsc", source.values?.backQsc ?? null)}</div>
+            </div>
+            ${BACK_QSC_METRICS.map((item) => `<div class="executive-metric-card">
+              <div class="lk">${item.label}</div>
+              <div class="lv">${formatBackQscMetricValue(item.key, source.values?.[item.key] ?? null)}</div>
+            </div>`).join("")}
+          </div>
+          ${renderBackQscRawDetails(source)}
+          ${renderBackQscNotes(source)}
+        </article>`;
+      }).join("");
+
+      return `
+        <div class="entry-shell">
+          <div class="entry-toolbar">
+            <div class="entry-store-switch">
+              <button class="entry-store-chip" type="button" onclick="clearEntryStore()">← 門店選擇</button>
+              ${state.stores.map((item) => `<button class="entry-store-chip ${item.id === store.id ? "active" : ""}" type="button" onclick="setEntryStore('${item.id}')">${escapeHTML(item.name)}</button>`).join("")}
+            </div>
+          </div>
+
+          ${renderEntryModuleNav(store.id)}
+
+          <div class="card">
+            <div class="entry-workspace-head">
+              <div>
+                <div class="entry-module-kicker">back qsc</div>
+                <h3>${escapeHTML(store.name)}｜內場QSC</h3>
+              </div>
+              <button class="btn sm gold" type="button" onclick="openBackQscRecordModal('', '${store.id}')">＋ 新增內場QSC</button>
+            </div>
+            <div class="entry-overview-grid">
+              ${overview.map((item) => `<button class="entry-overview-card metric ${activeMetric === item.key ? "active" : ""}" type="button" onclick="setBackQscMetric('${item.key}')">
+                <div class="lk">${item.label}</div>
+                <div class="lv">${item.value}</div>
+              </button>`).join("")}
+            </div>
+          </div>
+
+          <div class="card entry-trend-card" id="backQscTrendCard">
+            <div class="entry-trend-head">
+              <div>
+                <h4>${trendMeta.label}</h4>
+              </div>
+              <div class="entry-trend-value">${trendValue}</div>
+            </div>
+            ${renderBackQscTrendChart(summary.records, activeMetric)}
+            <div class="entry-chart-legend"><span><i style="background:${trendMeta.color}"></i>${trendMeta.short}</span></div>
+          </div>
+
+          <div class="card">
+            <div class="entry-section-head">
+              <div>
+                <h4>${formatPeriodLabel(period)} 內場QSC逐筆紀錄</h4>
+              </div>
+            </div>
+            ${summary.records.length ? `<div class="qsc-record-list">${recordCards}</div>` : `<div class="entry-empty-state">
+              <strong>${escapeHTML(store.name)} 這個月還沒有內場 QSC 紀錄</strong>
+              先把原始 15 欄與異常修正記進來，系統會自動換算分數，月摘要就會一起長出來。
+            </div>`}
+          </div>
+        </div>
+      `;
+    }
+
     function renderLockedEntryModule(store, module) {
       const latestRecord = storeRecordSummaries()
         .filter((record) => record.storeId === store.id && recordMatchesEntryModule(record, module.id))
@@ -14877,8 +15578,10 @@ with check (true);`;
           ? renderCustomerModule(store, period)
         : module.id === "food"
           ? renderMaterialModule(store, period)
-          : module.id === "front-qsc"
+        : module.id === "front-qsc"
             ? renderFrontQscModule(store, period)
+          : module.id === "back-qsc"
+            ? renderBackQscModule(store, period)
           : renderLockedEntryModule(store, module);
     }
 
@@ -16748,6 +17451,354 @@ with check (true);`;
             ? "done"
             : "open";
       updateImprovementStatus(itemId, next);
+    }
+
+    function openBackQscRecordModal(sourceId = "", presetStoreId = "") {
+      const source = sourceId ? allStoreSourceRecords().find((item) => item.id === sourceId) : null;
+      const seededStoreId = source?.storeId || presetStoreId || entryUI.selectedStoreId || state.stores[0]?.id || "";
+      const seededDate = source?.reportDate || formatDateInputValue();
+      const seededCreator = source?.sourceName || currentUserName();
+      const details = source?.details || {};
+      const hasSeededRawInput = backQscHasRawInput(source?.values || {});
+      const hasLegacyOnlyScore = Boolean(source?.values) && !hasSeededRawInput && BACK_QSC_METRICS.some((item) => source?.values?.[item.key] !== undefined && source?.values?.[item.key] !== null && source?.values?.[item.key] !== "");
+      const seededRawValues = Object.fromEntries(BACK_QSC_INPUT_FIELDS.map((item) => {
+        const existing = source?.values?.[item.key];
+        return [item.key, existing ?? ""];
+      }));
+      const seededMetricValues = hasSeededRawInput
+        ? backQscDerivedMetricValues(source.values || {})
+        : Object.fromEntries(BACK_QSC_METRICS.map((item) => {
+            const existing = source?.values?.[item.key];
+            const fallback = source?.values?.backQsc;
+            return [item.key, existing ?? fallback ?? null];
+          }));
+      const seededBackQsc = source?.values?.backQsc ?? backQscTotalScore(seededMetricValues);
+      const seededIssueCount = backQscIssueCountFromSource(source || {});
+
+      openModal({
+        title: source ? "編輯內場QSC" : "新增內場QSC",
+        subtitle: "先填原始 15 欄，系統會自動標準化成六個核心分數與總分。重點是留下當班痕跡，不是自己手算。",
+        cardClass: "wide",
+        formClass: "qsc-modal-form",
+        confirmLabel: source ? "儲存" : "新增",
+        body: `
+          <div class="qsc-flow-shell">
+            <section class="qsc-flow-section">
+              <div class="qsc-flow-head">
+                <div class="qsc-flow-headline">
+                  <div class="qsc-flow-title-row">
+                    <h5>基本資料</h5>
+                  </div>
+                </div>
+              </div>
+              <div class="qsc-flow-body">
+                <div class="qsc-modal-meta">
+                  <div>
+                    <label class="fl" for="backQscStoreId">門店</label>
+                    <select id="backQscStoreId" name="storeId">${storeSelectOptions(seededStoreId)}</select>
+                  </div>
+                  <div>
+                    <label class="fl" for="backQscDate">日期</label>
+                    <input id="backQscDate" name="reportDate" type="date" value="${escapeHTML(seededDate)}">
+                  </div>
+                  <div class="span-2">
+                    <label class="fl" for="backQscCreator">建立者</label>
+                    <input id="backQscCreator" name="createdBy" type="text" value="${escapeHTML(seededCreator)}" placeholder="">
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="qsc-flow-section">
+              <div class="qsc-flow-head">
+                <div class="qsc-flow-headline">
+                  <div class="qsc-flow-title-row">
+                    <h5>系統換算分數</h5>
+                  </div>
+                </div>
+              </div>
+              <div class="qsc-flow-body">
+                <div class="qsc-slider-grid">
+                  ${BACK_QSC_METRICS.map((item) => `<div class="qsc-slider-card">
+                    <div class="qsc-slider-head">
+                      <div class="qsc-slider-title">${item.label}</div>
+                      <div class="qsc-slider-value" id="${item.key}View">${seededMetricValues[item.key] === null || seededMetricValues[item.key] === undefined ? "—" : formatDecimal(seededMetricValues[item.key], 1)}</div>
+                    </div>
+                    <div class="qsc-slider-foot">
+                      <span>${item.hint}</span>
+                      <strong>系統換算</strong>
+                    </div>
+                  </div>`).join("")}
+                </div>
+                <div class="qsc-slider-card" style="margin-top:16px">
+                  <div class="qsc-slider-head">
+                    <div class="qsc-slider-title">內場QSC總分</div>
+                    <div class="qsc-slider-value" id="backQscTotalView">${seededBackQsc === null || seededBackQsc === undefined ? "—" : formatDecimal(seededBackQsc, 1)}</div>
+                  </div>
+                  <div class="qsc-compact-field">
+                    <label class="fl" for="${sourceValueFieldName("backQsc")}">自動平均</label>
+                    <input id="${sourceValueFieldName("backQsc")}" name="${sourceValueFieldName("backQsc")}" type="number" step="0.1" value="${seededBackQsc === null || seededBackQsc === undefined ? "" : escapeHTML(Number(seededBackQsc.toFixed(1)))}" readonly>
+                  </div>
+                  <div class="qsc-slider-foot">
+                    <span id="backQscTotalText">${seededBackQsc === null || seededBackQsc === undefined ? "先填原始欄位才會換算" : "六個核心分數自動平均"}</span>
+                    <strong>系統計算</strong>
+                  </div>
+                </div>
+                <div class="entry-formula-note">
+                  算法：15 個細項先各自換算成 0-100 分，再收斂成六個核心分數。總分吃的是標準化後的細項平均，不直接拿原始次數相加；餐點客訴也有納入總分。
+                </div>
+                ${hasLegacyOnlyScore ? `<div class="entry-formula-note">這筆是舊版六分項資料，原始 15 欄不存在。若本次沒有補原始欄位，系統會沿用舊分數，不會覆蓋。</div>` : ""}
+              </div>
+            </section>
+
+            <section class="qsc-flow-section">
+              <div class="qsc-flow-head">
+                <div class="qsc-flow-headline">
+                  <div class="qsc-flow-title-row">
+                    <h5>異常扣分項</h5>
+                  </div>
+                </div>
+              </div>
+              <div class="qsc-flow-body">
+                <div class="qsc-pair-grid">
+                  ${BACK_QSC_EVENT_FIELDS.map((item) => `<div class="qsc-compact-field">
+                    <label class="fl" for="${sourceValueFieldName(item.key)}">${item.label}</label>
+                    <input id="${sourceValueFieldName(item.key)}" name="${sourceValueFieldName(item.key)}" type="number" min="${item.min}" max="${item.max}" step="${item.step}" value="${seededRawValues[item.key] === "" ? "" : escapeHTML(String(seededRawValues[item.key]))}" placeholder="0">
+                    <div class="entry-formula-note" style="margin-top:8px">${item.hint}｜${item.scoreHint}</div>
+                  </div>`).join("")}
+                </div>
+              </div>
+            </section>
+
+            <section class="qsc-flow-section">
+              <div class="qsc-flow-head">
+                <div class="qsc-flow-headline">
+                  <div class="qsc-flow-title-row">
+                    <h5>過程檢核項</h5>
+                  </div>
+                </div>
+              </div>
+              <div class="qsc-flow-body">
+                <div class="qsc-pair-grid">
+                  ${BACK_QSC_CHECK_FIELDS.map((item) => `<div class="qsc-compact-field">
+                    <label class="fl" for="${sourceValueFieldName(item.key)}">${item.label}</label>
+                    <input id="${sourceValueFieldName(item.key)}" name="${sourceValueFieldName(item.key)}" type="number" min="${item.min}" max="${item.max}" step="${item.step}" value="${seededRawValues[item.key] === "" ? "" : escapeHTML(String(seededRawValues[item.key]))}" placeholder="0">
+                    <div class="entry-formula-note" style="margin-top:8px">${item.hint}｜${item.scoreHint}</div>
+                  </div>`).join("")}
+                </div>
+              </div>
+            </section>
+
+            <section class="qsc-flow-section">
+              <div class="qsc-flow-head">
+                <div class="qsc-flow-headline">
+                  <div class="qsc-flow-title-row">
+                    <h5>百分比達成項</h5>
+                  </div>
+                </div>
+              </div>
+              <div class="qsc-flow-body">
+                <div class="qsc-pair-grid">
+                  ${BACK_QSC_RATE_FIELDS.map((item) => `<div class="qsc-compact-field">
+                    <label class="fl" for="${sourceValueFieldName(item.key)}">${item.label}</label>
+                    <input id="${sourceValueFieldName(item.key)}" name="${sourceValueFieldName(item.key)}" type="number" min="${item.min}" max="${item.max}" step="${item.step}" value="${seededRawValues[item.key] === "" ? "" : escapeHTML(String(seededRawValues[item.key]))}" placeholder="0-100">
+                    <div class="entry-formula-note" style="margin-top:8px">${item.hint}｜${item.scoreHint}</div>
+                  </div>`).join("")}
+                </div>
+              </div>
+            </section>
+
+            <section class="qsc-flow-section">
+              <div class="qsc-flow-head">
+                <div class="qsc-flow-headline">
+                  <div class="qsc-flow-title-row">
+                    <h5>稽核文字</h5>
+                  </div>
+                </div>
+              </div>
+              <div class="qsc-flow-body">
+                <div class="qsc-pair-grid">
+                  ${BACK_QSC_DETAIL_META.filter((item) => !["backIssueContent", "backManagerAction"].includes(item.key)).map((item) => `<div class="qsc-compact-field">
+                    <label class="fl" for="${sourceDetailFieldName(item.key)}">${item.label}</label>
+                    <textarea id="${sourceDetailFieldName(item.key)}" name="${sourceDetailFieldName(item.key)}" rows="4" placeholder="${item.placeholder}">${escapeHTML(details[item.key] || "")}</textarea>
+                  </div>`).join("")}
+                </div>
+              </div>
+            </section>
+
+            <section class="qsc-flow-section">
+              <div class="qsc-flow-head">
+                <div class="qsc-flow-headline">
+                  <div class="qsc-flow-title-row">
+                    <h5>異常與修正</h5>
+                  </div>
+                </div>
+              </div>
+              <div class="qsc-flow-body">
+                <div class="qsc-slider-card">
+                  <div class="qsc-slider-head">
+                    <div class="qsc-slider-title">異常事件數</div>
+                    <div class="qsc-slider-value" id="backQscIssueCountView">${escapeHTML(String(seededIssueCount))}</div>
+                  </div>
+                  <div class="qsc-compact-field">
+                    <label class="fl" for="${sourceDetailFieldName("backIssueCaseCount")}">件數</label>
+                    <input id="${sourceDetailFieldName("backIssueCaseCount")}" name="${sourceDetailFieldName("backIssueCaseCount")}" type="number" min="0" max="20" step="1" value="${escapeHTML(String(seededIssueCount))}" placeholder="0">
+                  </div>
+                  <div class="qsc-slider-foot ${seededIssueCount >= BACK_QSC_ISSUE_ALERT_THRESHOLD ? "alert" : ""}" id="backQscIssueFoot">
+                    <span id="backQscIssueText">${seededIssueCount >= BACK_QSC_ISSUE_ALERT_THRESHOLD ? "超過 1 件，需追蹤" : "0 - 1 件屬可控範圍"}</span>
+                    <strong>當班判斷</strong>
+                  </div>
+                </div>
+                <div class="qsc-pair-grid" style="margin-top:16px">
+                  ${BACK_QSC_DETAIL_META.filter((item) => ["backIssueContent", "backManagerAction"].includes(item.key)).map((item) => `<div class="qsc-compact-field">
+                    <label class="fl" for="${sourceDetailFieldName(item.key)}">${item.label}</label>
+                    <textarea id="${sourceDetailFieldName(item.key)}" name="${sourceDetailFieldName(item.key)}" rows="4" placeholder="${item.placeholder}">${escapeHTML(details[item.key] || "")}</textarea>
+                  </div>`).join("")}
+                  <div class="qsc-compact-field">
+                    <label class="fl" for="backQscNote">補充備註</label>
+                    <textarea id="backQscNote" name="note" rows="4" placeholder="例如：今天尖峰提前 20 分鐘進場，站位有先重排。">${escapeHTML(source?.note || "")}</textarea>
+                  </div>
+                </div>
+                ${source ? `<div class="modal-inline-actions"><button class="btn danger" type="button" onclick="deleteStoreSourceRecord('${source.id}')">刪除</button></div>` : ""}
+              </div>
+            </section>
+          </div>
+        `,
+        onSubmit(formData) {
+          const storeId = (formData.get("storeId") || "").toString().trim();
+          const reportDate = normalizeReportDate((formData.get("reportDate") || "").toString().trim(), Date.now(), entryCurrentPeriod());
+          const sourceName = (formData.get("createdBy") || "").toString().trim() || currentUserName();
+          const note = (formData.get("note") || "").toString().trim();
+          if (!storeId || !reportDate) {
+            toast("門店和日期不能空白");
+            return;
+          }
+
+          const values = {};
+          BACK_QSC_INPUT_FIELDS.forEach((item) => {
+            const raw = (formData.get(sourceValueFieldName(item.key)) || "").toString().trim();
+            if (!raw) return;
+            values[item.key] = clampNumber(numericValue(raw), item.min, item.max);
+          });
+          if (Object.keys(values).length) {
+            const derivedValues = backQscDerivedMetricValues(values);
+            BACK_QSC_METRICS.forEach((item) => {
+              const score = derivedValues[item.key];
+              if (score === null || score === undefined) return;
+              values[item.key] = Number(score.toFixed(1));
+            });
+            const totalScore = backQscTotalScore(values);
+            if (totalScore !== null) {
+              values.backQsc = Number(totalScore.toFixed(1));
+            }
+          } else if (hasLegacyOnlyScore && source?.values) {
+            BACK_QSC_METRICS.forEach((item) => {
+              const legacyValue = source.values?.[item.key];
+              if (legacyValue === null || legacyValue === undefined || legacyValue === "") return;
+              values[item.key] = clampNumber(numericValue(legacyValue), 0, 100);
+            });
+            if (source.values?.backQsc !== null && source.values?.backQsc !== undefined && source.values?.backQsc !== "") {
+              values.backQsc = clampNumber(numericValue(source.values.backQsc), 0, 100);
+            }
+          }
+
+          const detailPayload = sanitizeSourceDetails({
+            ...Object.fromEntries(BACK_QSC_DETAIL_META.map((item) => [item.key, formData.get(sourceDetailFieldName(item.key)) || ""])),
+            backIssueCaseCount: formData.get(sourceDetailFieldName("backIssueCaseCount")) || ""
+          });
+          const issueCount = backQscIssueCountFromSource({ details: detailPayload });
+          const issueContent = (detailPayload.backIssueContent || "").toString().trim();
+          if (issueCount > 0 && !issueContent) {
+            toast("有異常事件時要填說明");
+            return;
+          }
+          if (!Object.keys(values).length && !Object.keys(detailPayload).length && !note) {
+            toast("至少要填一個欄位");
+            return;
+          }
+
+          const payload = {
+            id: source?.id || generateId("SRC"),
+            storeId,
+            reportDate,
+            period: monthKeyFromDate(reportDate),
+            sourceType: "qsc",
+            sourceName,
+            note,
+            values,
+            details: detailPayload,
+            ts: Date.now()
+          };
+
+          if (source) {
+            const index = state.storeSourceRecords.findIndex((item) => item.id === source.id);
+            state.storeSourceRecords.splice(index, 1, payload);
+            toast("已更新內場QSC");
+          } else {
+            state.storeSourceRecords.push(payload);
+            toast("已新增內場QSC");
+          }
+
+          entryUI.selectedStoreId = storeId;
+          entryUI.currentModuleId = "back-qsc";
+          entryUI.currentPeriod = monthKeyFromDate(reportDate);
+          closeModal();
+          rerenderAll();
+        }
+      });
+
+      const totalScoreInput = document.getElementById(sourceValueFieldName("backQsc"));
+      const totalScoreView = document.getElementById("backQscTotalView");
+      const totalScoreText = document.getElementById("backQscTotalText");
+      const issueInput = document.getElementById(sourceDetailFieldName("backIssueCaseCount"));
+      const issueView = document.getElementById("backQscIssueCountView");
+      const issueFoot = document.getElementById("backQscIssueFoot");
+      const issueText = document.getElementById("backQscIssueText");
+      const issueContentInput = document.getElementById(sourceDetailFieldName("backIssueContent"));
+      const legacyMetricValues = hasLegacyOnlyScore && source?.values ? backQscLegacyMetricValues(source.values) : null;
+      const legacyTotalScore = hasLegacyOnlyScore && source?.values?.backQsc !== undefined && source?.values?.backQsc !== null && source?.values?.backQsc !== ""
+        ? clampNumber(numericValue(source.values.backQsc), 0, 100)
+        : null;
+
+      const refreshBackQscScores = () => {
+        const values = {};
+        BACK_QSC_INPUT_FIELDS.forEach((item) => {
+          const input = document.getElementById(sourceValueFieldName(item.key));
+          const raw = (input?.value || "").toString().trim();
+          if (!raw) return;
+          const normalized = clampNumber(numericValue(raw), item.min, item.max);
+          if (input) input.value = item.step === "1" ? String(Math.round(normalized)) : Number(normalized.toFixed(1));
+          values[item.key] = normalized;
+        });
+        const metricValues = Object.keys(values).length ? backQscDerivedMetricValues(values) : (legacyMetricValues || {});
+        BACK_QSC_METRICS.forEach((item) => {
+          const view = document.getElementById(`${item.key}View`);
+          const score = metricValues[item.key];
+          if (view) view.textContent = score === null || score === undefined ? "—" : formatDecimal(score, 1);
+        });
+        const totalScore = Object.keys(values).length ? backQscTotalScore(values) : (Number.isFinite(legacyTotalScore) ? legacyTotalScore : null);
+        if (totalScoreInput) totalScoreInput.value = totalScore === null ? "" : Number(totalScore.toFixed(1));
+        if (totalScoreView) totalScoreView.textContent = totalScore === null ? "—" : formatDecimal(totalScore, 1);
+        if (totalScoreText) {
+          totalScoreText.textContent = totalScore === null
+            ? "先填原始欄位才會換算"
+            : Object.keys(values).length
+              ? `${Object.keys(values).length} 欄已標準化`
+              : "沿用舊版六分項";
+        }
+        const issueCount = clampNumber(numericValue(issueInput?.value || 0), 0, 20);
+        if (issueInput) issueInput.value = String(Math.round(issueCount));
+        if (issueView) issueView.textContent = String(Math.round(issueCount));
+        if (issueFoot) issueFoot.classList.toggle("alert", issueCount >= BACK_QSC_ISSUE_ALERT_THRESHOLD);
+        if (issueText) issueText.textContent = issueCount >= BACK_QSC_ISSUE_ALERT_THRESHOLD ? "超過 1 件，需追蹤" : "0 - 1 件屬可控範圍";
+        if (issueContentInput) issueContentInput.required = issueCount > 0;
+      };
+
+      BACK_QSC_INPUT_FIELDS.forEach((item) => {
+        document.getElementById(sourceValueFieldName(item.key))?.addEventListener("input", refreshBackQscScores);
+      });
+      issueInput?.addEventListener("input", refreshBackQscScores);
+      refreshBackQscScores();
     }
 
     function openStoreSourceModal(sourceId = "", presetStoreId = "", presetPeriod = "", presetSourceType = "", presetFields = []) {
